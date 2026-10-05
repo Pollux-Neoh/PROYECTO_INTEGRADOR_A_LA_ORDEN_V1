@@ -1,10 +1,14 @@
 package app.view;
 
+import app.domain.Producto;
 import app.domain.Restaurante;
 import app.service.RestauranteService;
 
+import java.util.Map;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 public class RestauranteView {
@@ -17,14 +21,15 @@ public class RestauranteView {
         this.restauranteService = restauranteService;
     }
 
-    //Menú principal de la funcionalidad US-03 mostrar Menu
+    //Menú principal de la funcionalidad US-03 y US-04
     public void mostrarMenuRestaurantes() {
         int opcion = -1;
 
         while (opcion != 0) {
-            System.out.println("\n--- DESCUBRIMIENTO DE RESTAURANTES (US-03) ---");
+            System.out.println("\n--- DESCUBRIMIENTO DE RESTAURANTES ---");
             System.out.println("1. Ver restaurantes cercanos");
             System.out.println("2. Buscar restaurantes (por nombre o categoría)");
+            System.out.println("3. Ver carta/menú de un restaurante");
             System.out.println("0. Volver al menú principal");
             System.out.print("Seleccione una opción: ");
 
@@ -51,6 +56,19 @@ public class RestauranteView {
 
                     List<Restaurante> filtrados = restauranteService.buscarRestaurantes(terminoBusqueda);
                     imprimirListado(filtrados);
+                    break;
+
+                case 3:
+                    // ⬇️ LÓGICA US-04
+                    System.out.print("\nIngrese el ID del restaurante para ver su menú: ");
+                    if (scanner.hasNextInt()) {
+                        int idRestaurante = scanner.nextInt();
+                        scanner.nextLine();
+                        mostrarMenuRestaurante(idRestaurante);
+                    } else {
+                        scanner.nextLine();
+                        System.out.println("ID no válido.");
+                    }
                     break;
 
                 case 0:
@@ -86,6 +104,44 @@ public class RestauranteView {
             System.out.println("Imagen:       🖼️ " + r.getImagenUrl());
             System.out.println("---------------------------------------------");
         }
+    }
+
+    //Metodo Mostrar Restaurantes
+
+    public void mostrarMenuRestaurante(int idRestaurante) {
+        Optional<Restaurante> restauranteOptional = restauranteService.obtenerRestaurantePorId(idRestaurante);
+
+        if (restauranteOptional.isEmpty()) {
+            System.out.println("No existe el restaurante con el id: " + idRestaurante);
+            return;
+        }
+
+        Restaurante restaurante = restauranteOptional.get();
+        List<Producto> productos = restaurante.getMenu();
+
+        System.out.println("\n=============================================");
+        System.out.println("          MENÚ: " + restaurante.getNombre().toUpperCase());
+        System.out.println("=============================================");
+
+        if (productos == null|| productos.isEmpty()) {
+            System.out.println("El restaurante aun no tiene productos");
+            return;
+        }
+
+        //Agrupacion por categoria mediante Streams
+        Map<String, List<Producto>> productosPorCategoria = productos.stream()
+                .collect(Collectors.groupingBy(Producto::getCategoria));
+
+        for (Map.Entry<String, List<Producto>> entry : productosPorCategoria.entrySet()) {
+            System.out.println("\n--- CATEGORÍA: " + entry.getKey().toUpperCase() + " ---");
+
+            for (Producto prod : entry.getValue()) {
+                String estado = prod.isDisponible() ? "DISPONIBLE" : "[AGOTADO]";
+                System.out.printf("- %s | $%.2f | Estado: %s%n", prod.getNombre(), prod.getPrecio(), estado);
+                System.out.println("  Descripción: " + prod.getDescripcion());
+            }
+        }
+        System.out.println("=============================================\n");
     }
 }
 

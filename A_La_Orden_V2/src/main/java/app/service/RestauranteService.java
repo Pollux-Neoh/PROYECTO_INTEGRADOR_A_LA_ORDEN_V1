@@ -7,6 +7,7 @@ import app.repository.RestauranteRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 public class RestauranteService {
 
@@ -19,6 +20,7 @@ public class RestauranteService {
     }
 
     //Criterio US-03 Mostrar restaurantes ordenados por cercania
+
     public List<Restaurante> obtenerRestaurantesCercanos() {
 
         //1. Lista original del repo
@@ -49,4 +51,10 @@ public class RestauranteService {
                         r.getCategoria().toLowerCase().contains(filtroMiniscula))
                            .collect(Collectors.toList());
     }
+
+    public Optional<Restaurante> obtenerRestaurantePorId(int id) {
+        return restauranteRepository.buscarPorId(id);
+    }
+
+
 }

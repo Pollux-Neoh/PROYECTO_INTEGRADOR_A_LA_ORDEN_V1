@@ -10,10 +10,13 @@ public class ClienteView {
 
     private Scanner scanner;
     private ClienteService clienteService;
+    private RestauranteView restauranteView;
 
-    public ClienteView(ClienteService clienteService) {
+
+    public ClienteView(ClienteService clienteService, RestauranteView restauranteView) {
         scanner = new Scanner(System.in);
         this.clienteService = clienteService;
+        this.restauranteView = restauranteView;
     }
 
     public void mostrarRegistro(){
@@ -106,69 +109,75 @@ public class ClienteView {
         // Mostramos el nombre del cliente que inició sesión
         System.out.println("\nBienvenido, " +  cliente.getNombre());
 
-        System.out.println("\n1. Recuperar contraseña");
-        System.out.println("2. Cerrar sesión");
+            System.out.println("\n1. Explorar restaurantes");
+            System.out.println("2. Recuperar contraseña");
+            System.out.println("3. Cerrar sesión");
 
         System.out.println("\nSeleccione una opción: ");
 
         String opcion = scanner.nextLine();
 
-        switch (opcion) {
+            switch (opcion) {
 
-            case "1":
-                System.out.println("\n === RECUPERAR CONTRASEÑA ===");
-
-                // Pedimos el correo de la cuenta que quiere recuperar la contraseña.
-                System.out.println("Ingrese su correo: ");
-                String correo = scanner.nextLine();
-
-                // Pedimos la nueva contraseña.
-                System.out.println("Ingrese la nueva contraseña: ");
-                String nuevaContraseina = scanner.nextLine();
-
-                // Pedimos nuevamente la contraseña para confirmar que el usuario la escribió correctamente.
-                System.out.println("Confirme la nueva contraseña: ");
-                String confirmarContraseina = scanner.nextLine();
-
-                //Comparamos la nueva contraseña con su confirmación.
-                if (!nuevaContraseina.equals(confirmarContraseina)) {
-
-                    //Si son diferentes, informamos el error al usuario.
-                    System.out.println("\nLas contraseñas no coinciden.");
-                    System.out.println("No fue posible recuperar la contraseña.");
-
-                    // Salimos de este case sin actualizar la contraseña.
+                case "1":
+                    // Llamamos al menú de restaurantes (US-03 / US-04)
+                    restauranteView.mostrarMenuRestaurantes();
                     break;
-                }
 
-                //Enviamos los datos al service para que realice las validaciones y actualice la contraseña.
-                boolean recuperacionExitosa = clienteService.recuperarContrasenia(
-                        correo,
-                        nuevaContraseina
-                );
+                case "2":
+                    System.out.println("\n === RECUPERAR CONTRASEÑA ===");
 
-                // Informamos el resultado al usuario.
-                if (recuperacionExitosa) {
+                    // Pedimos el correo de la cuenta que quiere recuperar la contraseña.
+                    System.out.println("Ingrese su correo: ");
+                    String correo = scanner.nextLine();
 
-                    System.out.println("\n¡Contraseña recuperada exitosamente!");
-                } else {
+                    // Pedimos la nueva contraseña.
+                    System.out.println("Ingrese la nueva contraseña: ");
+                    String nuevaContraseina = scanner.nextLine();
 
-                    System.out.println("\nNo fue posible recuperar la contraseña.");
-                }
-                break;
-            case "2":
-                // Cambiamos la variable para salir de la pantalla principal,
-                continuar = false;
+                    // Pedimos nuevamente la contraseña para confirmar que el usuario la escribió correctamente.
+                    System.out.println("Confirme la nueva contraseña: ");
+                    String confirmarContraseina = scanner.nextLine();
 
-                System.out.println("\nSesión cerrada correctamente.");
-                break;
+                    //Comparamos la nueva contraseña con su confirmación.
+                    if (!nuevaContraseina.equals(confirmarContraseina)) {
 
-            default:
-                //Retroalimentación para una opción inexistente
-                System.out.println("\nOpcion no valida.");
-                System.out.println("Por favor, seleccione 1 o 2");
+                        //Si son diferentes, informamos el error al usuario.
+                        System.out.println("\nLas contraseñas no coinciden.");
+                        System.out.println("No fue posible recuperar la contraseña.");
 
-        }
+                        // Salimos de este case sin actualizar la contraseña.
+                        break;
+                    }
+
+                    //Enviamos los datos al service para que realice las validaciones y actualice la contraseña.
+                    boolean recuperacionExitosa = clienteService.recuperarContrasenia(
+                            correo,
+                            nuevaContraseina
+                    );
+
+                    // Informamos el resultado al usuario.
+                    if (recuperacionExitosa) {
+
+                        System.out.println("\n¡Contraseña recuperada exitosamente!");
+                    } else {
+
+                        System.out.println("\nNo fue posible recuperar la contraseña.");
+                    }
+                    break;
+
+                case "3":
+                    // Cambiamos la variable para salir de la pantalla principal,
+                    continuar = false;
+
+                    System.out.println("\nSesión cerrada correctamente.");
+                    break;
+
+                default:
+                    //Retroalimentación para una opción inexistente
+                    System.out.println("\nOpcion no valida.");
+                    System.out.println("Por favor, seleccione 1, 2 o 3");
+            }
         }
     }
 }
