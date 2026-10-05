@@ -11,6 +11,8 @@ import app.view.RestauranteView;
 
 import java.util.Scanner;
 
+import java.util.Scanner;
+
 public class Application {
 
     public static void main(String[] args) {
@@ -18,6 +20,15 @@ public class Application {
         // ==============================
         // CREACIÓN DE LOS COMPONENTES DE LA APP
         // ==============================
+
+        // Repository: se encarga de almacenar y buscar clientes
+        ClienteRepository clienteRepository = new ClienteRepository();
+
+        // Service: contiene la lógica de registro e inicio de sesión
+        ClienteService clienteService = new ClienteService(clienteRepository);
+
+        // View: se encarga de interactuar con el usuario
+        ClienteView clienteView = new ClienteView(clienteService);
 
         // Módulo de Clientes
         ClienteRepository clienteRepository = new ClienteRepository();
@@ -47,6 +58,7 @@ public class Application {
 
             System.out.println("\n1. Crear cuenta");
             System.out.println("2. Iniciar sesión");
+            System.out.println("3. Salir");
             System.out.println("3. Explorar restaurantes");
             System.out.println("4. Salir");
 
@@ -62,6 +74,17 @@ public class Application {
                     break;
 
                 case "2":
+                    // Ejecutamos el proceso de inicio de sesión y guardamos el cliente que devuelve la View.
+                    Cliente cliente = clienteView.mostrarLogin();
+
+                    // Verificamos si el inicio de sesión fue exitoso
+                    if (cliente != null) {
+
+                        clienteView.mostrarPantallaPrincipal(cliente);
+                    }
+                    break;
+
+                case "3":
                     // Ejecutamos el proceso de inicio de sesión
                     //clienteView.mostrarLogin();
                     break;
@@ -82,6 +105,7 @@ public class Application {
                 default:
                     // Si el usuario escribe una opción que no existe
                     System.out.println("\nOpción no válida.");
+                    System.out.println("Por favor, seleccione 1, 2 o 3.");
                     System.out.println("Por favor, seleccione 1, 2, 3 o 4.");
             }
         }
