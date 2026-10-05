@@ -21,14 +21,7 @@ public class Application {
         // CREACIÓN DE LOS COMPONENTES DE LA APP
         // ==============================
 
-        // Repository: se encarga de almacenar y buscar clientes
-        ClienteRepository clienteRepository = new ClienteRepository();
 
-        // Service: contiene la lógica de registro e inicio de sesión
-        ClienteService clienteService = new ClienteService(clienteRepository);
-
-        // View: se encarga de interactuar con el usuario
-        ClienteView clienteView = new ClienteView(clienteService);
 
         // Módulo de Clientes
         ClienteRepository clienteRepository = new ClienteRepository();
@@ -89,12 +82,12 @@ public class Application {
                     //clienteView.mostrarLogin();
                     break;
 
-                case "3":
+                case "4":
                     // US-03: Menú de descubrimiento de restaurantes
                     restauranteView.mostrarMenuRestaurantes();
                     break;
 
-                case "4":
+                case "5":
                     // Cambiamos la variable para terminar el ciclo
                     continuar = false;
 
