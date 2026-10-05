@@ -2,8 +2,14 @@ package app.application;
 
 import app.domain.Cliente;
 import app.repository.ClienteRepository;
+import app.repository.RestauranteRepository;
+import app.repository.RestauranteRepositoryImpl;
 import app.service.ClienteService;
+import app.service.RestauranteService;
 import app.view.ClienteView;
+import app.view.RestauranteView;
+
+import java.util.Scanner;
 
 import java.util.Scanner;
 
@@ -24,6 +30,16 @@ public class Application {
         // View: se encarga de interactuar con el usuario
         ClienteView clienteView = new ClienteView(clienteService);
 
+        // Módulo de Clientes
+        ClienteRepository clienteRepository = new ClienteRepository();
+        ClienteService clienteService = new ClienteService(clienteRepository);
+        ClienteView clienteView = new ClienteView(clienteService);
+
+        // Módulo de Restaurantes (US-03)
+        RestauranteRepository restauranteRepository = new RestauranteRepositoryImpl();
+        RestauranteService restauranteService = new RestauranteService(restauranteRepository);
+        RestauranteView restauranteView = new RestauranteView(restauranteService);
+
         // Scanner para controlar las opciones del menú principal
         Scanner scanner = new Scanner(System.in);
 
@@ -43,6 +59,8 @@ public class Application {
             System.out.println("\n1. Crear cuenta");
             System.out.println("2. Iniciar sesión");
             System.out.println("3. Salir");
+            System.out.println("3. Explorar restaurantes");
+            System.out.println("4. Salir");
 
             System.out.println("\nSeleccione una opción: ");
 
@@ -67,6 +85,16 @@ public class Application {
                     break;
 
                 case "3":
+                    // Ejecutamos el proceso de inicio de sesión
+                    //clienteView.mostrarLogin();
+                    break;
+
+                case "3":
+                    // US-03: Menú de descubrimiento de restaurantes
+                    restauranteView.mostrarMenuRestaurantes();
+                    break;
+
+                case "4":
                     // Cambiamos la variable para terminar el ciclo
                     continuar = false;
 
@@ -78,6 +106,7 @@ public class Application {
                     // Si el usuario escribe una opción que no existe
                     System.out.println("\nOpción no válida.");
                     System.out.println("Por favor, seleccione 1, 2 o 3.");
+                    System.out.println("Por favor, seleccione 1, 2, 3 o 4.");
             }
         }
 
