@@ -21,17 +21,16 @@ public class Application {
         // CREACIÓN DE LOS COMPONENTES DE LA APP
         // ==============================
 
-
-
-        // Módulo de Clientes
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ClienteService clienteService = new ClienteService(clienteRepository);
-        ClienteView clienteView = new ClienteView(clienteService);
-
-        // Módulo de Restaurantes (US-03)
+        // Módulo de Restaurantes (US-03 / US-04)
         RestauranteRepository restauranteRepository = new RestauranteRepositoryImpl();
         RestauranteService restauranteService = new RestauranteService(restauranteRepository);
         RestauranteView restauranteView = new RestauranteView(restauranteService);
+
+
+        // Módulo de Clientes (Le inyectamos restauranteView para navegar desde la pantalla principal)
+        ClienteRepository clienteRepository = new ClienteRepository();
+        ClienteService clienteService = new ClienteService(clienteRepository);
+        ClienteView clienteView = new ClienteView(clienteService, restauranteView);
 
         // Scanner para controlar las opciones del menú principal
         Scanner scanner = new Scanner(System.in);
@@ -52,8 +51,6 @@ public class Application {
             System.out.println("\n1. Crear cuenta");
             System.out.println("2. Iniciar sesión");
             System.out.println("3. Salir");
-            System.out.println("3. Explorar restaurantes");
-            System.out.println("4. Salir");
 
             System.out.println("\nSeleccione una opción: ");
 
@@ -67,27 +64,16 @@ public class Application {
                     break;
 
                 case "2":
-                    // Ejecutamos el proceso de inicio de sesión y guardamos el cliente que devuelve la View.
+                    // Ejecutamos el proceso de inicio de sesión y guardamos el cliente devuelto.
                     Cliente cliente = clienteView.mostrarLogin();
 
                     // Verificamos si el inicio de sesión fue exitoso
                     if (cliente != null) {
-
                         clienteView.mostrarPantallaPrincipal(cliente);
                     }
                     break;
 
                 case "3":
-                    // Ejecutamos el proceso de inicio de sesión
-                    //clienteView.mostrarLogin();
-                    break;
-
-                case "4":
-                    // US-03: Menú de descubrimiento de restaurantes
-                    restauranteView.mostrarMenuRestaurantes();
-                    break;
-
-                case "5":
                     // Cambiamos la variable para terminar el ciclo
                     continuar = false;
 
@@ -99,7 +85,6 @@ public class Application {
                     // Si el usuario escribe una opción que no existe
                     System.out.println("\nOpción no válida.");
                     System.out.println("Por favor, seleccione 1, 2 o 3.");
-                    System.out.println("Por favor, seleccione 1, 2, 3 o 4.");
             }
         }
 
