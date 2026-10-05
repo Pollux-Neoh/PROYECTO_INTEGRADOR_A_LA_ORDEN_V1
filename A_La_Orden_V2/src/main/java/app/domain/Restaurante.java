@@ -1,5 +1,9 @@
 package app.domain;
 
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class Restaurante {
 
     //Definir atributos
@@ -10,9 +14,11 @@ public class Restaurante {
     private Double distanciaKm;
     private String categoria;
 
+
+    //El menu del restaurante
+    private List<Producto> menu;
+
     //constructor
-
-
     public Restaurante(int id, String nombre,
                        String imagenUrl,
                        Double calificacionPromedio,
@@ -24,6 +30,9 @@ public class Restaurante {
         CalificacionPromedio = calificacionPromedio;
         this.distanciaKm = distanciaKm;
         this.categoria = categoria;
+
+        //Inicializar la lista vacia necesario
+        this.menu = new ArrayList<>();
     }
 
 
@@ -78,5 +87,20 @@ public class Restaurante {
         this.categoria = categoria;
     }
 
+
+
+    //METODOS DEL MENU
+
+    public List<Producto> getMenu() {
+        return menu;
+    }
+
+    public void setMenu(List<Producto> menu) {
+        this.menu = menu;
+    }
+
+    public void agregarProducto(Producto producto) {
+        this.menu.add(producto);
+    }
 
 }
