@@ -4,7 +4,6 @@ import app.domain.Cliente;
 import app.domain.DetallePedido;
 import app.domain.Pedido;
 import app.domain.Producto;
-import app.domain.Restaurante;
 import app.domain.enums.EstadoPedido;
 import app.repository.PedidoRepository;
 import app.validators.PedidoValidator;
