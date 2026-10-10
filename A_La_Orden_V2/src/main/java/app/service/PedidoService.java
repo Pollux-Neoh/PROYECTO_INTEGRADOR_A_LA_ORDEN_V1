@@ -4,6 +4,7 @@ import app.domain.Cliente;
 import app.domain.DetallePedido;
 import app.domain.Pedido;
 import app.domain.Producto;
+import app.domain.enums.EstadoPedido;
 import app.repository.PedidoRepository;
 import app.validators.PedidoValidator;
 
@@ -30,9 +31,19 @@ public class PedidoService {
         return pedidoRepository.buscarPorId(id);
     }
 
+    public boolean terminarPedido(int pedidoId) {
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+        if (pedido == null || !pedido.terminar()) {
+            return false;
+        }
+        pedidoRepository.guardar(pedido);
+        return true;
+    }
+
     public boolean agregarProducto(int pedidoId, Producto producto, int cantidad) {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
         if (pedido == null
+                || pedido.getEstado() != EstadoPedido.EN_PROCESO
                 || !PedidoValidator.validarProducto(producto)
                 || !PedidoValidator.validarCantidad(cantidad)) {
             return false;
@@ -50,7 +61,9 @@ public class PedidoService {
 
     public boolean actualizarCantidad(int pedidoId, int productoId, int cantidad) {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
-        if (pedido == null || !PedidoValidator.validarCantidad(cantidad)) {
+        if (pedido == null
+                || pedido.getEstado() != EstadoPedido.EN_PROCESO
+                || !PedidoValidator.validarCantidad(cantidad)) {
             return false;
         }
         for (DetallePedido detalle : pedido.getDetalles()) {
@@ -71,7 +84,9 @@ public class PedidoService {
 
     public boolean quitarProducto(int pedidoId, int productoId) {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
-        if (pedido == null || !pedido.quitarProducto(productoId)) {
+        if (pedido == null
+                || pedido.getEstado() != EstadoPedido.EN_PROCESO
+                || !pedido.quitarProducto(productoId)) {
             return false;
         }
         pedidoRepository.guardar(pedido);
@@ -82,4 +97,6 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
         return pedido == null ? null : pedido.getSubtotal();
     }
+
+
 }

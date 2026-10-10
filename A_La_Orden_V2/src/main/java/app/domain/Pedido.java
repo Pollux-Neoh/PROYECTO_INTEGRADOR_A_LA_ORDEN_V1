@@ -1,5 +1,7 @@
 package app.domain;
 
+import app.domain.enums.EstadoPedido;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,11 +14,13 @@ public class Pedido {
     private final int id;
     private final Cliente cliente;
     private final Map<Integer, DetallePedido> detalles;
+    private EstadoPedido estado;
 
     public Pedido(int id, Cliente cliente) {
         this.id = id;
         this.cliente = cliente;
         this.detalles = new LinkedHashMap<>();
+        this.estado = EstadoPedido.EN_PROCESO;
     }
 
     public int getId() {
@@ -27,11 +31,26 @@ public class Pedido {
         return cliente;
     }
 
+    public EstadoPedido getEstado() {
+        return estado;
+    }
+
     public List<DetallePedido> getDetalles() {
         return Collections.unmodifiableList(new ArrayList<>(detalles.values()));
     }
 
+    public boolean terminar() {
+        if (estado != EstadoPedido.EN_PROCESO) {
+            return false;
+        }
+        estado = EstadoPedido.TERMINADO;
+        return true;
+    }
+
     public void agregarProducto(Producto producto, int cantidad) {
+        if (estado != EstadoPedido.EN_PROCESO) {
+            throw new IllegalStateException("No se puede modificar un pedido terminado.");
+        }
         if (producto == null || cantidad <= 0) {
             throw new IllegalArgumentException("El producto y una cantidad positiva son obligatorios.");
         }
@@ -47,7 +66,7 @@ public class Pedido {
     }
 
     public boolean actualizarCantidad(int productoId, int cantidad) {
-        if (cantidad <= 0) {
+        if (estado != EstadoPedido.EN_PROCESO || cantidad <= 0) {
             return false;
         }
         DetallePedido detalle = detalles.get(productoId);
@@ -59,6 +78,9 @@ public class Pedido {
     }
 
     public boolean quitarProducto(int productoId) {
+        if (estado != EstadoPedido.EN_PROCESO) {
+            return false;
+        }
         return detalles.remove(productoId) != null;
     }
 
