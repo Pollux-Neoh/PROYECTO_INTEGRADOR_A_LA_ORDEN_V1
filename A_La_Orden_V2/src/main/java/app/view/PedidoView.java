@@ -3,6 +3,7 @@ package app.view;
 import app.domain.DetallePedido;
 import app.domain.Pedido;
 import app.domain.Producto;
+import app.domain.enums.EstadoPedido;
 import app.service.PedidoService;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class PedidoView {
             }
         }
         System.out.println("Subtotal: " + pedido.getSubtotal());
+        System.out.println("Estado: " + pedido.getEstado());
     }
 
     public void mostrarMenu(int pedidoId) {
@@ -50,6 +52,7 @@ public class PedidoView {
             System.out.println("2. Agregar producto");
             System.out.println("3. Modificar cantidad");
             System.out.println("4. Quitar producto");
+            System.out.println("5. Revisar y confirmar pedido");
             System.out.println("0. Salir");
             System.out.print("Seleccione una opción: ");
             String opcion = scanner.nextLine();
@@ -66,6 +69,9 @@ public class PedidoView {
                     break;
                 case "4":
                     quitarProducto(pedidoId);
+                    break;
+                case "5":
+                    confirmarPedido(pedidoId);
                     break;
                 case "0":
                     continuar = false;
@@ -104,6 +110,42 @@ public class PedidoView {
             System.out.println("Producto quitado del carrito.");
         } else {
             System.out.println("No se pudo quitar el producto.");
+        }
+    }
+
+    private void confirmarPedido(int pedidoId) {
+        Pedido pedido = pedidoService.buscarPorId(pedidoId);
+        if (pedido == null) {
+            System.out.println("No se encontró el pedido.");
+            return;
+        }
+        if (pedido.getEstado() != EstadoPedido.PENDIENTE_CONFIRMACION) {
+            System.out.println("El pedido ya fue confirmado.");
+            return;
+        }
+
+        System.out.println("\n--- RESUMEN DEL PEDIDO ---");
+        System.out.println("Cliente: " + pedido.getCliente().getNombre());
+        System.out.println("Restaurante: " + (pedido.getRestaurante() == null
+                ? "No asignado"
+                : pedido.getRestaurante().getNombre()));
+        for (DetallePedido detalle : pedido.getDetalles()) {
+            System.out.println(detalle.getProducto().getNombre()
+                    + " | Cantidad: " + detalle.getCantidad()
+                    + " | Subtotal: " + detalle.getSubtotal());
+        }
+        System.out.println("Total: " + pedido.getSubtotal());
+        System.out.print("¿Confirma el pedido? (s/n): ");
+        if (!"s".equalsIgnoreCase(scanner.nextLine().trim())) {
+            System.out.println("Confirmación cancelada.");
+            return;
+        }
+
+        if (pedidoService.confirmarPedido(pedidoId)) {
+            System.out.println("Pedido confirmado. Se notificó al restaurante "
+                    + pedido.getRestaurante().getNombre() + ".");
+        } else {
+            System.out.println("No se pudo confirmar. Verifique que tenga productos y un restaurante asignado.");
         }
     }
 
