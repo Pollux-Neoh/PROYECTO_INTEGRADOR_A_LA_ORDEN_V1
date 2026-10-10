@@ -10,6 +10,7 @@ public class ClienteRepository {
     private List<Cliente> clientes;
 
     public ClienteRepository() {
+
         clientes = new ArrayList<>();
     }
 
@@ -26,7 +27,14 @@ public class ClienteRepository {
         }
         return null;
     }
+
     public List<Cliente> listar() {
         return clientes;
+    }
+
+    public void actualizarContraseina(Cliente cliente, String nuevaContrasenia) {
+
+        //Actualizamos la contraseña del cliente recibido
+        cliente.setContrasenia(nuevaContrasenia);
     }
 }
