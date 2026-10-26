@@ -1,45 +1,27 @@
 package app.domain;
 
-
+import java.math.BigDecimal;
 
 public class Producto {
 
-    // Atributos del producto
-
-    private int id;
+    private final int id;
     private String nombre;
     private String descripcion;
-    private double precio;
+    private BigDecimal precio;
+    private boolean disponible;
     private String categoria;
-    private boolean disponible; //Agotado o no
 
-
-    //Constructores crear nuevos productos
-
-
-    public Producto(int id, String nombre,
-                    String descripcion,
-                    double precio,
-                    String categoria,
-                    boolean disponible)
-    {
+    public Producto(int id, String nombre, String descripcion, BigDecimal precio, boolean disponible, String categoria) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
-        this.categoria = categoria;
         this.disponible = disponible;
+        this.categoria = categoria;
     }
-
-    //GETTERS SETTERS comunicacion con otras clases
-
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getNombre() {
@@ -58,20 +40,12 @@ public class Producto {
         this.descripcion = descripcion;
     }
 
-    public double getPrecio() {
+    public BigDecimal getPrecio() {
         return precio;
     }
 
-    public void setPrecio(double precio) {
+    public void setPrecio(BigDecimal precio) {
         this.precio = precio;
-    }
-
-    public String getCategoria() {
-        return categoria;
-    }
-
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
     }
 
     public boolean isDisponible() {
@@ -82,9 +56,7 @@ public class Producto {
         this.disponible = disponible;
     }
 
+    public String getCategoria() {return categoria;}
 
+    public void setCategoria(String categoria) {this.categoria = categoria;}
 }
-
-
-
-
