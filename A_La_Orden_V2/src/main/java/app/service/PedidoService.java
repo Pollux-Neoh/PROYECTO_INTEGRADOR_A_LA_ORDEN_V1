@@ -42,6 +42,15 @@ public class PedidoService {
         return pedidoRepository.buscarPorId(id);
     }
 
+    public boolean terminarPedido(int pedidoId) {
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+        if (pedido == null || !pedido.terminar()) {
+            return false;
+        }
+        pedidoRepository.guardar(pedido);
+        return true;
+    }
+
     public boolean agregarProducto(int pedidoId, Producto producto, int cantidad) {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
         if (pedido == null

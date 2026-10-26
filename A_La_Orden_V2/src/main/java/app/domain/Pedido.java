@@ -49,6 +49,14 @@ public class Pedido {
         return Collections.unmodifiableList(new ArrayList<>(detalles.values()));
     }
 
+    public boolean terminar() {
+        if (estado != EstadoPedido.EN_PROCESO) {
+            return false;
+        }
+        estado = EstadoPedido.TERMINADO;
+        return true;
+    }
+
     public void agregarProducto(Producto producto, int cantidad) {
         validarPendiente();
         if (producto == null || cantidad <= 0) {
