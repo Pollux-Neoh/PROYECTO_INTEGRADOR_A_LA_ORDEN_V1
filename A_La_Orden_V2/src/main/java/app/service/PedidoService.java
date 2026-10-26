@@ -7,19 +7,30 @@ import app.domain.Producto;
 import app.domain.enums.EstadoPedido;
 import app.repository.PedidoRepository;
 import app.validators.PedidoValidator;
+import app.domain.Restaurante;
 
 import java.math.BigDecimal;
 
 public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
+    private final NotificacionService notificacionService;
 
     public PedidoService(PedidoRepository pedidoRepository) {
+        this(pedidoRepository, new NotificacionService());
+    }
+
+    public PedidoService(PedidoRepository pedidoRepository, NotificacionService notificacionService) {
         this.pedidoRepository = pedidoRepository;
+        this.notificacionService = notificacionService;
     }
 
     public Pedido crearPedido(int id, Cliente cliente) {
-        Pedido pedido = new Pedido(id, cliente);
+        return crearPedido(id, cliente, null);
+    }
+
+    public Pedido crearPedido(int id, Cliente cliente, Restaurante restaurante) {
+        Pedido pedido = new Pedido(id, cliente, restaurante);
         if (!PedidoValidator.validarPedido(pedido) || pedidoRepository.buscarPorId(id) != null) {
             return null;
         }
@@ -43,7 +54,7 @@ public class PedidoService {
     public boolean agregarProducto(int pedidoId, Producto producto, int cantidad) {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
         if (pedido == null
-                || pedido.getEstado() != EstadoPedido.EN_PROCESO
+                || pedido.getEstado() != EstadoPedido.PENDIENTE_CONFIRMACION
                 || !PedidoValidator.validarProducto(producto)
                 || !PedidoValidator.validarCantidad(cantidad)) {
             return false;
@@ -62,7 +73,7 @@ public class PedidoService {
     public boolean actualizarCantidad(int pedidoId, int productoId, int cantidad) {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
         if (pedido == null
-                || pedido.getEstado() != EstadoPedido.EN_PROCESO
+                || pedido.getEstado() != EstadoPedido.PENDIENTE_CONFIRMACION
                 || !PedidoValidator.validarCantidad(cantidad)) {
             return false;
         }
@@ -85,7 +96,7 @@ public class PedidoService {
     public boolean quitarProducto(int pedidoId, int productoId) {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
         if (pedido == null
-                || pedido.getEstado() != EstadoPedido.EN_PROCESO
+                || pedido.getEstado() != EstadoPedido.PENDIENTE_CONFIRMACION
                 || !pedido.quitarProducto(productoId)) {
             return false;
         }
@@ -98,5 +109,17 @@ public class PedidoService {
         return pedido == null ? null : pedido.getSubtotal();
     }
 
+    public boolean confirmarPedido(int pedidoId) {
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+        if (!PedidoValidator.validarConfirmacion(pedido) || !pedido.confirmar()) {
+            return false;
+        }
+        pedidoRepository.guardar(pedido);
+        notificacionService.notificarPedidoConfirmado(pedido);
+        return true;
+    }
 
+    public NotificacionService getNotificacionService() {
+        return notificacionService;
+    }
 }

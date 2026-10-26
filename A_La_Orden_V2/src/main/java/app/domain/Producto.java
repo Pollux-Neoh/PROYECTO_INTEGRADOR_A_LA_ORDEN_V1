@@ -9,13 +9,15 @@ public class Producto {
     private String descripcion;
     private BigDecimal precio;
     private boolean disponible;
+    private String categoria;
 
-    public Producto(int id, String nombre, String descripcion, BigDecimal precio, boolean disponible) {
+    public Producto(int id, String nombre, String descripcion, BigDecimal precio, boolean disponible, String categoria) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
         this.disponible = disponible;
+        this.categoria = categoria;
     }
 
     public int getId() {
@@ -53,4 +55,8 @@ public class Producto {
     public void setDisponible(boolean disponible) {
         this.disponible = disponible;
     }
+
+    public String getCategoria() {return categoria;}
+
+    public void setCategoria(String categoria) {this.categoria = categoria;}
 }

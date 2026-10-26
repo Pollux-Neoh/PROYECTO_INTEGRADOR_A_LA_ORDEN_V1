@@ -1,10 +1,9 @@
 package app.validators;
 
-import app.domain.Cliente;
 
 public class ClienteValidator {
 
-    public static boolean validarCorreo(String correo){
+    public static boolean validarCorreo(String correo) {
 
         return correo != null
                 && correo.contains("@")

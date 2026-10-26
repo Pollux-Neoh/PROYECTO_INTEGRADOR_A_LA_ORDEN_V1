@@ -13,14 +13,20 @@ public class Pedido {
 
     private final int id;
     private final Cliente cliente;
+    private final Restaurante restaurante;
     private final Map<Integer, DetallePedido> detalles;
     private EstadoPedido estado;
 
     public Pedido(int id, Cliente cliente) {
+        this(id, cliente, null);
+    }
+
+    public Pedido(int id, Cliente cliente, Restaurante restaurante) {
         this.id = id;
         this.cliente = cliente;
+        this.restaurante = restaurante;
         this.detalles = new LinkedHashMap<>();
-        this.estado = EstadoPedido.EN_PROCESO;
+        this.estado = EstadoPedido.PENDIENTE_CONFIRMACION;
     }
 
     public int getId() {
@@ -29,6 +35,10 @@ public class Pedido {
 
     public Cliente getCliente() {
         return cliente;
+    }
+
+    public Restaurante getRestaurante() {
+        return restaurante;
     }
 
     public EstadoPedido getEstado() {
@@ -48,9 +58,7 @@ public class Pedido {
     }
 
     public void agregarProducto(Producto producto, int cantidad) {
-        if (estado != EstadoPedido.EN_PROCESO) {
-            throw new IllegalStateException("No se puede modificar un pedido terminado.");
-        }
+        validarPendiente();
         if (producto == null || cantidad <= 0) {
             throw new IllegalArgumentException("El producto y una cantidad positiva son obligatorios.");
         }
@@ -66,7 +74,8 @@ public class Pedido {
     }
 
     public boolean actualizarCantidad(int productoId, int cantidad) {
-        if (estado != EstadoPedido.EN_PROCESO || cantidad <= 0) {
+        validarPendiente();
+        if (cantidad <= 0) {
             return false;
         }
         DetallePedido detalle = detalles.get(productoId);
@@ -78,10 +87,18 @@ public class Pedido {
     }
 
     public boolean quitarProducto(int productoId) {
-        if (estado != EstadoPedido.EN_PROCESO) {
+        validarPendiente();
+        return detalles.remove(productoId) != null;
+    }
+
+    public boolean confirmar() {
+        if (estado != EstadoPedido.PENDIENTE_CONFIRMACION
+                || restaurante == null
+                || detalles.isEmpty()) {
             return false;
         }
-        return detalles.remove(productoId) != null;
+        estado = EstadoPedido.CONFIRMADO;
+        return true;
     }
 
     public BigDecimal getSubtotal() {
@@ -90,5 +107,11 @@ public class Pedido {
             subtotal = subtotal.add(detalle.getSubtotal());
         }
         return subtotal;
+    }
+
+    private void validarPendiente() {
+        if (estado != EstadoPedido.PENDIENTE_CONFIRMACION) {
+            throw new IllegalStateException("No se puede modificar un pedido confirmado.");
+        }
     }
 }

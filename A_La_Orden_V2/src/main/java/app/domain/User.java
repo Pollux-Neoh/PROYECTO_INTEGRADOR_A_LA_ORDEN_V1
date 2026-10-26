@@ -107,6 +107,4 @@ public abstract class User {
 
         System.out.println("Actualizando datos del usuario ID: " + this.id);
     }
-
-
 }
