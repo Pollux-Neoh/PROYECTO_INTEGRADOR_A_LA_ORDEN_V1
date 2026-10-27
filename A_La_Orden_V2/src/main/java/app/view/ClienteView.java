@@ -120,7 +120,6 @@ public class ClienteView {
             switch (opcion) {
 
                 case "1":
-                    // Llamamos al menú de restaurantes (US-03 / US-04)
                     restauranteView.mostrarMenuRestaurantes();
                     break;
 
