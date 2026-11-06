@@ -11,12 +11,14 @@ public class ClienteView {
     private Scanner scanner;
     private ClienteService clienteService;
     private RestauranteView restauranteView;
+    private HistorialView historialView;
 
 
-    public ClienteView(ClienteService clienteService, RestauranteView restauranteView) {
+    public ClienteView(ClienteService clienteService, RestauranteView restauranteView, HistorialView historialView) {
         scanner = new Scanner(System.in);
         this.clienteService = clienteService;
         this.restauranteView = restauranteView;
+        this.historialView = historialView;
     }
 
     public void mostrarRegistro(){
@@ -110,8 +112,9 @@ public class ClienteView {
         System.out.println("\nBienvenido, " +  cliente.getNombre());
 
             System.out.println("\n1. Explorar restaurantes");
-            System.out.println("2. Recuperar contraseña");
-            System.out.println("3. Cerrar sesión");
+            System.out.println("2. Consultar historial de facturas");
+            System.out.println("3. Recuperar contraseña");
+            System.out.println("4. Cerrar sesión");
 
         System.out.println("\nSeleccione una opción: ");
 
@@ -122,8 +125,11 @@ public class ClienteView {
                 case "1":
                     restauranteView.mostrarMenuRestaurantes();
                     break;
-
                 case "2":
+                    historialView.mostrarHistorial(cliente);
+                    break;
+
+                case "3":
                     System.out.println("\n === RECUPERAR CONTRASEÑA ===");
 
                     // Pedimos el correo de la cuenta que quiere recuperar la contraseña.
@@ -165,7 +171,7 @@ public class ClienteView {
                     }
                     break;
 
-                case "3":
+                case "4":
                     // Cambiamos la variable para salir de la pantalla principal,
                     continuar = false;
 
@@ -175,7 +181,7 @@ public class ClienteView {
                 default:
                     //Retroalimentación para una opción inexistente
                     System.out.println("\nOpcion no valida.");
-                    System.out.println("Por favor, seleccione 1, 2 o 3");
+                    System.out.println("Por favor, seleccione 1 al 4");
             }
         }
     }
