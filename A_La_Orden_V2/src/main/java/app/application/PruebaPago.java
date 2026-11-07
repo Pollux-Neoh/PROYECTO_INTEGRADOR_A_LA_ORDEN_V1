@@ -17,6 +17,8 @@ import app.service.PedidoService;
 
 import java.math.BigDecimal;
 
+import app.domain.enums.MetodoPago;
+
 public class PruebaPago {
 
     public static void main(String[] args) {
@@ -83,15 +85,20 @@ public class PruebaPago {
         );
 
         // 9. Registramos el pago en efectivo.
-        Pago pago = pagoService.registrarPagoEfectivo(
-                pedido.getId()
+        Pago pago = pagoService.registrarPago(
+                pedido.getId(),
+                MetodoPago.EFECTIVO
         );
 
         // 10. Mostramos los resultados.
         System.out.println("===== PRUEBA US-08 =====");
 
         // Intentamos registrar un segundo pago mientras el primero está pendiente.
-        Pago segundoPagoPendiente = pagoService.registrarPagoEfectivo(100);
+        Pago segundoPagoPendiente = pagoService.registrarPago(
+                100,
+                MetodoPago.EFECTIVO
+        );
+
 
         System.out.println(
                 "Segundo pago mientras existe uno pendiente: " + segundoPagoPendiente
@@ -110,7 +117,10 @@ public class PruebaPago {
         }
 
         // Intentamos registrar un pago para un pedido inexistente.
-        Pago pagoInexistente = pagoService.registrarPagoEfectivo(999);
+        Pago pagoInexistente = pagoService.registrarPago(
+                999,
+                MetodoPago.EFECTIVO
+        );
 
         System.out.println(
                 "Pago para pedido inexistente: " + pagoInexistente
@@ -124,7 +134,10 @@ public class PruebaPago {
         pedidoService.agregarProducto(200, producto, 1);
 
         // Intentamos registrar el pago sin confirmar el pedido.
-        Pago pagoSinConfirmar = pagoService.registrarPagoEfectivo(200);
+        Pago pagoSinConfirmar = pagoService.registrarPago(
+                200,
+                MetodoPago.EFECTIVO
+        );
 
         System.out.println(
                 "Pago para pedido sin confirmar: " + pagoSinConfirmar
@@ -166,7 +179,10 @@ public class PruebaPago {
         }
 
         // Intentamos registrar otro pago para el mismo pedido.
-        Pago pagoDuplicado = pagoService.registrarPagoEfectivo(100);
+        Pago pagoDuplicado = pagoService.registrarPago(
+                100,
+                MetodoPago.EFECTIVO
+        );
 
         System.out.println(
                 "Segundo pago para pedido con pago confirmado: " + pagoDuplicado
@@ -185,7 +201,10 @@ public class PruebaPago {
         pedidoService.confirmarPedido(300);
 
         // Registramos el primer pago.
-        Pago pagoParaCancelar = pagoService.registrarPagoEfectivo(300);
+        Pago pagoParaCancelar = pagoService.registrarPago(
+                300,
+                MetodoPago.EFECTIVO
+        );
 
         System.out.println("Primer pago del pedido 300: " + pagoParaCancelar.getEstado());
 
@@ -203,7 +222,10 @@ public class PruebaPago {
         );
 
         // Intentamos registrar un nuevo pago.
-        Pago nuevoPago = pagoService.registrarPagoEfectivo(300);
+        Pago nuevoPago = pagoService.registrarPago(
+                300,
+                MetodoPago.EFECTIVO
+        );
 
         System.out.println(
                 "¿Se permitió un nuevo pago?: " + (nuevoPago != null)
@@ -237,6 +259,39 @@ public class PruebaPago {
             System.out.println("Mensaje: " + notificacion.getMensaje());
         }
 
+
+        // ===== PRUEBA US-09: PAGO CON TARJETA =====
+
+// Creamos un pedido nuevo.
+        Pedido pedidoTarjeta = pedidoService.crearPedido(
+                400,
+                cliente,
+                restaurante
+        );
+
+// Agregamos un producto y confirmamos el pedido.
+        pedidoService.agregarProducto(400, producto, 1);
+        pedidoService.confirmarPedido(400);
+
+// Registramos el pago con tarjeta.
+        Pago pagoTarjeta = pagoService.registrarPagoTarjeta(
+                400,
+                "1234567812345678",
+                "CLIENTE PRUEBA",
+                "12/28",
+                "123"
+        );
+
+// Mostramos los resultados.
+        System.out.println("===== PRUEBA US-09 =====");
+
+        if (pagoTarjeta != null) {
+            System.out.println("Método: " + pagoTarjeta.getMetodoPago());
+            System.out.println("Monto: $" + pagoTarjeta.getMonto());
+            System.out.println("Estado: " + pagoTarjeta.getEstado());
+        } else {
+            System.out.println("No fue posible realizar el pago con tarjeta.");
+        }
     }
 
 

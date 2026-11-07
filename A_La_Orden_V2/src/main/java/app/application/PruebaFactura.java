@@ -7,6 +7,7 @@ import app.domain.Pedido;
 import app.domain.Producto;
 import app.domain.Restaurante;
 
+import app.domain.enums.MetodoPago;
 import app.repository.FacturaRepository;
 import app.repository.FacturaRepositoryMemoria;
 import app.repository.PagoRepository;
@@ -104,7 +105,7 @@ public class PruebaFactura {
                 pedidoService.confirmarPedido(100);
 
         // 10. Registramos el pago.
-        Pago pago = pagoService.registrarPagoEfectivo(100);
+        Pago pago = pagoService.registrarPago(100, MetodoPago.EFECTIVO);
 
         // 11. Simulamos la confirmación del pago.
         // Esto representa la responsabilidad de US-22.
@@ -179,7 +180,7 @@ public class PruebaFactura {
         pedidoService.agregarProducto(200, hamburguesa, 1);
         pedidoService.confirmarPedido(200);
 
-        Pago pagoPendiente = pagoService.registrarPagoEfectivo(200);
+        Pago pagoPendiente = pagoService.registrarPago(200, MetodoPago.EFECTIVO);
 
         // No confirmamos el pago.
         // Intentamos generar una factura.
