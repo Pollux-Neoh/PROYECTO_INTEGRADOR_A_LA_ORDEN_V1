@@ -24,6 +24,7 @@ public class PedidoRepository implements PedidoOutport {
         return pedido;
     }
 
+    @Override
     public Pedido buscarPorId(int id) {
         return pedidos.get(id);
     }
@@ -54,6 +55,7 @@ public class PedidoRepository implements PedidoOutport {
         return pedidos.remove(id) != null;
     }
 
+    @Override
     public List<Pedido> listar() {
         return Collections.unmodifiableList(new ArrayList<>(pedidos.values()));
     }
