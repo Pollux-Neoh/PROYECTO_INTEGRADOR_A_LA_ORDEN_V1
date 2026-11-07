@@ -37,6 +37,19 @@ public class PedidoRepository implements PedidoOutport {
         }
     }
 
+    @Override
+    public Optional<Pedido> buscarPorCodigoQr(String codigoQr) {
+        if (codigoQr == null || codigoQr.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        for (Pedido pedido : pedidos.values()) {
+            if (codigoQr.equals(pedido.getCodigoQr())) {
+                return Optional.of(pedido);
+            }
+        }
+        return Optional.empty();
+    }
+
     public boolean eliminar(int id) {
         return pedidos.remove(id) != null;
     }
