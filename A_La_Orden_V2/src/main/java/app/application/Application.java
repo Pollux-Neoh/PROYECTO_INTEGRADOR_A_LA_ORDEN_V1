@@ -2,7 +2,7 @@ package app.application;
 
 import app.domain.*;
 import app.repository.ClienteRepository;
-import app.service.Inputport.RestauranteRepository;
+import app.repository.RestauranteRepository;
 import app.repository.RestauranteRepositoryImpl;
 import app.service.ClienteService;
 import app.service.RestauranteService;

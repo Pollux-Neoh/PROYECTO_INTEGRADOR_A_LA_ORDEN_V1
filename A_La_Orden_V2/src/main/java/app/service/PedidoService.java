@@ -70,7 +70,8 @@ public class PedidoService implements PedidoInput {
 
 
     public boolean agregarProducto(int pedidoId, Producto producto, int cantidad) {
-        Pedido pedido = buscarPedido(pedidoId);
+
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
 
         if (pedido == null
                 || pedido.getEstado() != EstadoPedido.PENDIENTE_CONFIRMACION
@@ -182,7 +183,7 @@ public class PedidoService implements PedidoInput {
     public boolean confirmarPedido(int pedidoId) {
 
 
-        Pedido pedido = buscarPedido(pedidoId);
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
 
         if (!PedidoValidator.validarConfirmacion(pedido) || !pedido.confirmar()) {
             return false;
@@ -282,6 +283,7 @@ public class PedidoService implements PedidoInput {
     }
 
     private Pedido buscarPedido(int id) {
-        return pedidoRepository.buscarPorId(id);
+        Optional<Pedido> pedido = pedidoRepository.buscarPorId(String.valueOf(id));
+        return pedido.orElse(null);
     }
 }

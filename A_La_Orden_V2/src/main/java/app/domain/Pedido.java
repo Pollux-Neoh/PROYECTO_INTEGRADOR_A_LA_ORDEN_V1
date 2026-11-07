@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class Pedido {
 
@@ -17,7 +16,6 @@ public class Pedido {
     private final Restaurante restaurante;
     private final Map<Integer, DetallePedido> detalles;
     private EstadoPedido estado;
-    private String codigoQr;
     private Integer tiempoEstimadoMinutos; //es integer porque inicialmente el pedido no tendra un tiempo sera un null
 
     public Pedido(int id, Cliente cliente) {
@@ -32,9 +30,6 @@ public class Pedido {
         this.estado = EstadoPedido.PENDIENTE_CONFIRMACION;
     }
 
-    public String getCodigoQr() {
-        return codigoQr;
-    }
     public int getId() {
         return id;
     }
@@ -135,18 +130,7 @@ public class Pedido {
                 || detalles.isEmpty()) {
             return false;
         }
-        codigoQr = UUID.randomUUID().toString();
         estado = EstadoPedido.CONFIRMADO;
-        return true;
-    }
-
-    public boolean marcarComoEntregado(String codigoQrEscaneado) {
-        if (estado != EstadoPedido.CONFIRMADO
-                || codigoQr == null
-                || !codigoQr.equals(codigoQrEscaneado)) {
-            return false;
-        }
-        estado = EstadoPedido.ENTREGADO;
         return true;
     }
 
