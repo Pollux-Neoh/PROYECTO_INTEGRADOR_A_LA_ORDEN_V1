@@ -1,6 +1,6 @@
 package app.application;
 
-import app.domain.Cliente;
+import app.domain.*;
 import app.repository.ClienteRepository;
 import app.repository.RestauranteRepository;
 import app.repository.RestauranteRepositoryImpl;
@@ -8,6 +8,7 @@ import app.service.ClienteService;
 import app.service.RestauranteService;
 import app.view.ClienteView;
 import app.view.RestauranteView;
+import app.domain.enums.MetodoPago;
 
 import java.util.Scanner;
 
@@ -20,6 +21,10 @@ import app.service.FacturaService;
 import app.view.HistorialView;
 import app.service.PedidoService;
 import app.service.PagoService;
+import app.service.NotificacionService;
+import app.view.AdministradorRestauranteView;
+
+import java.math.BigDecimal;
 
 public class Application {
 
@@ -31,8 +36,53 @@ public class Application {
 
         // Módulo de Restaurantes (US-03 / US-04)
         RestauranteRepository restauranteRepository = new RestauranteRepositoryImpl();
-        RestauranteService restauranteService = new RestauranteService(restauranteRepository);
-        RestauranteView restauranteView = new RestauranteView(restauranteService);
+        RestauranteService restauranteService =
+                new RestauranteService(restauranteRepository);
+
+        // =======================
+        // ADMINISTRADOR DE PRUEBA - US-19
+        // =======================
+
+        //Buscamos el restaurante que administrará el usuario.
+        Restaurante restauranteDemo = restauranteRepository
+                .buscarPorId(2)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No se encontró el restaurante de prueba."
+                ));
+
+        // Cargamos productos de prueva para El Sazón Paisa.
+        Producto bandejaPaisa = new Producto(
+                101,"Bandeja Paisa", "Plato típico Colombiano",
+                new BigDecimal("25000"), true, "Platos principales"
+        );
+
+        Producto arepaQueso = new Producto(
+                102, "Arepa paisa", "Plato típico Colombiano",
+                new BigDecimal("8000"), true, "Acompañamientos"
+        );
+
+        Producto gaseosa = new Producto(
+                103,"Gaseosa", "Bedida personal",
+                new BigDecimal("5000"), true, "Bedidas"
+        );
+
+
+        restauranteDemo.agregarProducto(bandejaPaisa);
+        restauranteDemo.agregarProducto(arepaQueso);
+        restauranteDemo.agregarProducto(gaseosa);
+
+        // Creamos el administrador asociado al restaurante.
+        AdministradorRestaurante administradorDemo =
+                new AdministradorRestaurante(
+                        10,
+                        "Administrador El Sazón",
+                        "admins@sazon.com",
+                        "admin12345",
+                        "3001234567",
+                        true,
+                        restauranteDemo
+                );
+
 
         // ==============================
         // MÓDULO DE PEDIDOS, PAGOS Y FACTURACIÓN
@@ -48,12 +98,72 @@ public class Application {
         FacturaRepository facturaRepository = new FacturaRepositoryMemoria();
 
         // Servicios encargados de pedidos y pagos.
-        PedidoService pedidoService = new PedidoService(pedidoRepository);
+        NotificacionService notificacionService = new NotificacionService();
+        PedidoService pedidoService = new PedidoService(
+                pedidoRepository,
+                notificacionService
+        );
 
+        // Servicio encargado de gestionar los pagos.
         PagoService pagoService = new PagoService(
                 pagoRepository,
                 pedidoRepository
         );
+
+        // Vista de restaurantes conectada con pedidos y pagos.
+        RestauranteView restauranteView = new RestauranteView(
+                restauranteService,
+                pedidoService,
+                pagoService
+        );
+
+
+        // ==============================
+        // PEDIDOS DE PRUEBA - US-19
+        // ==============================
+
+        // Cliente utilizado para las pruebas.
+        Cliente clienteDemo = new Cliente(
+                100,
+                "Camilo Cliente",
+                "cliente@prueba.com",
+                "123456",
+                "3001112233",
+                true,
+                "Medellín"
+        );
+
+        // Pedido 1001: se utilizará para probar la aceptación.
+        Pedido pedidoAceptar = pedidoService.crearPedido(
+                1001, clienteDemo, restauranteDemo
+        );
+
+        if (pedidoAceptar != null) {
+
+            pedidoService.agregarProducto(1001, bandejaPaisa, 2);
+            pedidoService.agregarProducto(1001, gaseosa, 1);
+
+            if (pedidoService.confirmarPedido(1001)) {
+                pagoService.registrarPago(1001, MetodoPago.EFECTIVO);
+            }
+        }
+
+        // Pedido 1002: se utilizará para probar el rechazo.
+        Pedido pedidoRechazar = pedidoService.crearPedido(
+                1002, clienteDemo, restauranteDemo
+        );
+
+        if (pedidoRechazar != null) {
+
+            pedidoService.agregarProducto(1002, arepaQueso, 1);
+            pedidoService.agregarProducto(1002, gaseosa, 2);
+
+            if (pedidoService.confirmarPedido(1002)) {
+                pagoService.registrarPago(1002, MetodoPago.EFECTIVO);
+            }
+        }
+
+
 
         // Servicio encargado de generar y consultar facturas.
         FacturaService facturaService = new FacturaService(
@@ -67,12 +177,23 @@ public class Application {
                 pedidoRepository
         );
 
+        AdministradorRestauranteView administradorView =
+                new  AdministradorRestauranteView(
+                        administradorDemo,
+                        pedidoService,
+                        pagoService
+                );
+
 
 
         // Módulo de Clientes (Le inyectamos restauranteView para navegar desde la pantalla principal)
         ClienteRepository clienteRepository = new ClienteRepository();
         ClienteService clienteService = new ClienteService(clienteRepository);
-        ClienteView clienteView = new ClienteView(clienteService, restauranteView, historialView);
+        ClienteView clienteView = new ClienteView(
+                clienteService,
+                restauranteView,
+                historialView
+        );
 
         // Scanner para controlar las opciones del menú principal
         Scanner scanner = new Scanner(System.in);
@@ -92,7 +213,8 @@ public class Application {
 
             System.out.println("\n1. Crear cuenta");
             System.out.println("2. Iniciar sesión");
-            System.out.println("3. Salir");
+            System.out.println("3. Administrador del restaurante");
+            System.out.println("4. Salir");
 
             System.out.println("\nSeleccione una opción: ");
 
@@ -116,6 +238,10 @@ public class Application {
                     break;
 
                 case "3":
+                    administradorView.mostrarMenu();
+                    break;
+
+                case "4":
                     // Cambiamos la variable para terminar el ciclo
                     continuar = false;
 
