@@ -53,6 +53,13 @@ public class Pedido {
 
     public String getCodigoQr() {return codigoQr;}
 
+
+
+
+
+
+
+
     //Permite guardar el tiempo calculado y el ajustado por el comerciante, no iguales o inf a 0
     public boolean actualizarTiempoEstimado(int minutos) {
         if (minutos <= 0) {
@@ -133,7 +140,10 @@ public class Pedido {
                 || detalles.isEmpty()) {
             return false;
         }
+
         estado = EstadoPedido.CONFIRMADO;
+        generarCodigoQr();
+
         return true;
     }
 
@@ -151,9 +161,16 @@ public class Pedido {
         }
     }
 
-    //Marcar como entregado
+    // Generación del código QR.
+    private void generarCodigoQr() {
+        this.codigoQr = "PEDIDO-" + id + "-"
+                + java.util.UUID.randomUUID();
+    }
+
+    // Marcar como entregado mediante validación QR.
     public boolean marcarComoEntregado(String codigoQrEscaneado) {
-        if (estado != EstadoPedido.CONFIRMADO
+
+        if (estado != EstadoPedido.LISTO
                 || codigoQr == null
                 || !codigoQr.equals(codigoQrEscaneado)) {
             return false;
@@ -161,6 +178,17 @@ public class Pedido {
 
         estado = EstadoPedido.ENTREGADO;
         return true;
+    }
+
+    //Marcar como Listo
+    public void marcarComoListo() {
+        if (estado != EstadoPedido.TERMINADO) {
+            throw new IllegalStateException(
+                    "Solo se pueden marcar como listos los pedidos terminados."
+            );
+        }
+
+        estado = EstadoPedido.LISTO;
     }
 
 }

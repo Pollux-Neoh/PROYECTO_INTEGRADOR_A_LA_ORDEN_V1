@@ -58,12 +58,38 @@ public class PedidoService implements PedidoInput {
         return buscarPedido(id);
     }
 
-    public boolean terminarPedido(int pedidoId) {
+    public boolean terminarPedido(int pedidoId, int restauranteId) {
+
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
-        if (pedido == null || !pedido.terminar()) {
+
+        if (pedido == null
+                || pedido.getRestaurante() == null
+                || pedido.getRestaurante().getId() != restauranteId
+                || !pedido.terminar()) {
             return false;
         }
+
         pedidoRepository.guardar(pedido);
+        return true;
+    }
+
+    // validamos estado y guardamos
+    public boolean marcarPedidoComoListo(int pedidoId, int restauranteId) {
+
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+
+        if (pedido == null
+                || pedido.getRestaurante() == null
+                || pedido.getRestaurante().getId() != restauranteId
+                || pedido.getEstado() != EstadoPedido.TERMINADO) {
+            return false;
+        }
+
+        pedido.marcarComoListo();
+
+        pedidoRepository.guardar(pedido);
+        notificacionService.notificarPedidoListo(pedido);
+
         return true;
     }
 
@@ -227,21 +253,32 @@ public class PedidoService implements PedidoInput {
         return pedidosEntrantes;
     }
 
-    public boolean aceptarPedido(int pedidoId, int restauranteId) {
-
+    public boolean terminarPedido(int pedidoId) {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
 
-        if (pedido == null
-            || pedido.getRestaurante() == null
-            || pedido.getRestaurante().getId() != restauranteId
-            || !pedido.aceptar()) {
-
+        if (pedido == null || !pedido.terminar()) {
             return false;
         }
 
         pedidoRepository.guardar(pedido);
         return true;
     }
+
+    public boolean aceptarPedido(int pedidoId, int restauranteId) {
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+
+        if (pedido == null
+                || pedido.getRestaurante() == null
+                || pedido.getRestaurante().getId() != restauranteId
+                || !pedido.aceptar()) {
+            return false;
+        }
+
+        pedidoRepository.guardar(pedido);
+        return true;
+    }
+
+
 
     public boolean rechazarPedido(int pedidoId, int restauranteId) {
 
@@ -261,13 +298,15 @@ public class PedidoService implements PedidoInput {
         return notificacionService;
     }
 
+
+    //El Qr solo esta disp para recoger cuando el pedido esta listo
     @Override
     public String obtenerQr(String idPedido) {
         if (idPedido == null) {
             return null;
         }
         return pedidoRepository.buscarPorId(idPedido)
-                .filter(pedido -> pedido.getEstado() == EstadoPedido.CONFIRMADO)
+                .filter(pedido -> pedido.getEstado() == EstadoPedido.LISTO)
                 .map(Pedido::getCodigoQr)
                 .orElse(null);
     }
@@ -286,4 +325,33 @@ public class PedidoService implements PedidoInput {
         Optional<Pedido> pedido = pedidoRepository.buscarPorId(String.valueOf(id));
         return pedido.orElse(null);
     }
+
+
+    public boolean escanearQr(String codigoQr, int restauranteId) {
+        if (codigoQr == null || codigoQr.isBlank()) {
+            return false;
+        }
+
+        Optional<Pedido> pedidoOptional =
+                pedidoRepository.buscarPorCodigoQr(codigoQr);
+
+        if (!pedidoOptional.isPresent()) {
+            return false;
+        }
+
+        Pedido pedido = pedidoOptional.get();
+
+        if (pedido.getRestaurante() == null
+                || pedido.getRestaurante().getId() != restauranteId
+                || !pedido.marcarComoEntregado(codigoQr)) {
+            return false;
+        }
+
+        pedidoRepository.guardar(pedido);
+        return true;
+    }
+
+
+
+
 }
