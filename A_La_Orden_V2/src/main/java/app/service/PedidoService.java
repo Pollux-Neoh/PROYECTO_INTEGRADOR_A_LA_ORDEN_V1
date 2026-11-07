@@ -5,7 +5,7 @@ import app.domain.DetallePedido;
 import app.domain.Pedido;
 import app.domain.Producto;
 import app.domain.enums.EstadoPedido;
-import app.service.Inputport.PedidoInput;
+import app.service.InputPort.PedidoInput;
 import app.service.OutputPort.PedidoOutport;
 import app.validators.PedidoValidator;
 import app.domain.Restaurante;
