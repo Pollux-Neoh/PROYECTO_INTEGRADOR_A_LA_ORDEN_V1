@@ -72,6 +72,24 @@ public class Pedido {
         return true;
     }
 
+    public boolean aceptar() {
+        if (estado != EstadoPedido.CONFIRMADO) {
+            return false;
+        }
+
+        estado = EstadoPedido.EN_PROCESO;
+        return true;
+    }
+
+    public boolean rechazar() {
+        if (estado != EstadoPedido.CONFIRMADO) {
+            return false;
+        }
+
+        estado = EstadoPedido.RECHAZADO;
+        return true;
+    }
+
     public void agregarProducto(Producto producto, int cantidad) {
         validarPendiente();
         if (producto == null || cantidad <= 0) {

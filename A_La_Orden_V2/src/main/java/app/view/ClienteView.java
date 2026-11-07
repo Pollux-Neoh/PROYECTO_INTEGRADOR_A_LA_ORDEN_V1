@@ -123,7 +123,7 @@ public class ClienteView {
             switch (opcion) {
 
                 case "1":
-                    restauranteView.mostrarMenuRestaurantes();
+                    restauranteView.mostrarMenuRestaurantes(cliente);
                     break;
                 case "2":
                     historialView.mostrarHistorial(cliente);

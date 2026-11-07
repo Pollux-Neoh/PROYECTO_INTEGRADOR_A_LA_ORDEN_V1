@@ -10,6 +10,8 @@ import app.validators.PedidoValidator;
 import app.domain.Restaurante;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PedidoService {
 
@@ -38,6 +40,18 @@ public class PedidoService {
         return pedido;
     }
 
+    // Genera automáticamente el ID de cada nuevo pedido.
+    public Pedido crearPedido(Cliente cliente, Restaurante restaurante) {
+
+        int siguienteId = 1003;
+
+        while (pedidoRepository.buscarPorId(siguienteId) != null) {
+            siguienteId++;
+        }
+
+        return crearPedido(siguienteId, cliente, restaurante);
+    }
+
     public Pedido buscarPorId(int id) {
         return pedidoRepository.buscarPorId(id);
     }
@@ -51,24 +65,34 @@ public class PedidoService {
         return true;
     }
 
+
+
     public boolean agregarProducto(int pedidoId, Producto producto, int cantidad) {
+
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+
         if (pedido == null
                 || pedido.getEstado() != EstadoPedido.PENDIENTE_CONFIRMACION
                 || !PedidoValidator.validarProducto(producto)
                 || !PedidoValidator.validarCantidad(cantidad)) {
             return false;
         }
+
         for (DetallePedido detalle : pedido.getDetalles()) {
+
             if (detalle.getProducto().getId() == producto.getId()
                     && cantidad > Integer.MAX_VALUE - detalle.getCantidad()) {
                 return false;
             }
         }
+
         pedido.agregarProducto(producto, cantidad);
         pedidoRepository.guardar(pedido);
+
         return true;
     }
+
+
 
     public boolean actualizarCantidad(int pedidoId, int productoId, int cantidad) {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
@@ -180,6 +204,56 @@ public class PedidoService {
         return true;
     }
 
+    public List<Pedido> obtenerPedidosEntrantes(int restauranteId) {
+
+        List<Pedido> pedidosEntrantes = new ArrayList<>();
+
+        if (restauranteId <= 0) {
+            return pedidosEntrantes;
+        }
+
+        for (Pedido pedido : pedidoRepository.listar()) {
+
+            if (pedido.getRestaurante() != null
+                && pedido.getRestaurante().getId() == restauranteId
+                && pedido.getEstado() == EstadoPedido.CONFIRMADO) {
+
+                pedidosEntrantes.add(pedido);
+            }
+        }
+        return pedidosEntrantes;
+    }
+
+    public boolean aceptarPedido(int pedidoId, int restauranteId) {
+
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+
+        if (pedido == null
+            || pedido.getRestaurante() == null
+            || pedido.getRestaurante().getId() != restauranteId
+            || !pedido.aceptar()) {
+
+            return false;
+        }
+
+        pedidoRepository.guardar(pedido);
+        return true;
+    }
+
+    public boolean rechazarPedido(int pedidoId, int restauranteId) {
+
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+
+        if (pedido == null
+            || pedido.getRestaurante() == null
+            || pedido.getRestaurante().getId() != restauranteId
+            || !pedido.rechazar()) {
+            return false;
+        }
+
+        pedidoRepository.guardar(pedido);
+        return true;
+    }
     public NotificacionService getNotificacionService() {
         return notificacionService;
     }

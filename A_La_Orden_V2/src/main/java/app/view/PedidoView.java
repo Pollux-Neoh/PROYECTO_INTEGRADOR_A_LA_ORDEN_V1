@@ -1,5 +1,8 @@
 package app.view;
 
+import app.domain.Pago;
+import app.service.PagoService;
+import app.domain.enums.MetodoPago;
 import app.domain.DetallePedido;
 import app.domain.Pedido;
 import app.domain.Producto;
@@ -15,11 +18,16 @@ public class PedidoView {
 
     private final Scanner scanner;
     private final PedidoService pedidoService;
+    private final PagoService pagoService;
     private final List<Producto> productos;
 
-    public PedidoView(PedidoService pedidoService, List<Producto> productos) {
+    public PedidoView(
+            PedidoService pedidoService,
+            PagoService pagoService,
+            List<Producto> productos) {
         this.scanner = new Scanner(System.in);
         this.pedidoService = pedidoService;
+        this.pagoService = pagoService;
         this.productos = Collections.unmodifiableList(new ArrayList<>(productos));
     }
 
@@ -113,41 +121,80 @@ public class PedidoView {
         }
     }
 
+
     private void confirmarPedido(int pedidoId) {
+
         Pedido pedido = pedidoService.buscarPorId(pedidoId);
+
         if (pedido == null) {
             System.out.println("No se encontró el pedido.");
             return;
         }
+
         if (pedido.getEstado() != EstadoPedido.PENDIENTE_CONFIRMACION) {
             System.out.println("El pedido ya fue confirmado.");
             return;
         }
 
+        // Mostramos el resumen del pedido.
         System.out.println("\n--- RESUMEN DEL PEDIDO ---");
         System.out.println("Cliente: " + pedido.getCliente().getNombre());
         System.out.println("Restaurante: " + (pedido.getRestaurante() == null
                 ? "No asignado"
                 : pedido.getRestaurante().getNombre()));
+
         for (DetallePedido detalle : pedido.getDetalles()) {
             System.out.println(detalle.getProducto().getNombre()
                     + " | Cantidad: " + detalle.getCantidad()
                     + " | Subtotal: " + detalle.getSubtotal());
         }
+
         System.out.println("Total: " + pedido.getSubtotal());
+
+        // Solicitamos la confirmación del cliente.
         System.out.print("¿Confirma el pedido? (s/n): ");
+
         if (!"s".equalsIgnoreCase(scanner.nextLine().trim())) {
             System.out.println("Confirmación cancelada.");
             return;
         }
 
-        if (pedidoService.confirmarPedido(pedidoId)) {
-            System.out.println("Pedido confirmado. Se notificó al restaurante "
+        // Solicitamos el met pago
+        System.out.println("\n--- MÉTODO DE PAGO ---");
+        System.out.println("1. Efectivo");
+        System.out.println("0. Cancelar");
+        System.out.print("Seleccione una opción: ");
+
+        String metodoPago = scanner.nextLine().trim();
+
+        if (!"1".equals(metodoPago)) {
+            System.out.println("Selección cancelada. El pedido sigue pendiente.");
+            return;
+        }
+
+        // Confirmamos el pedido antes de registrar el pago.
+        if (!pedidoService.confirmarPedido(pedidoId)) {
+            System.out.println("No se pudo confirmar el pedido.");
+            return;
+        }
+
+        // Registramos el pago en efectivo.
+        Pago pago = pagoService.registrarPagoEfectivo(pedidoId);
+
+        if (pago != null && pago.confirmar()) {
+
+            System.out.println("\n¡Pedido confirmado exitosamente!");
+            System.out.println("Método de pago: " + pago.getMetodoPago());
+            System.out.println("Total: " + pago.getMonto());
+            System.out.println("Se notificó al restaurante "
                     + pedido.getRestaurante().getNombre() + ".");
+
         } else {
-            System.out.println("No se pudo confirmar. Verifique que tenga productos y un restaurante asignado.");
+
+            System.out.println("El pedido fue confirmado, pero no se pudo registrar el pago.");
         }
     }
+
 
     private void mostrarProductosDisponibles() {
         System.out.println("\n--- PRODUCTOS DISPONIBLES ---");
