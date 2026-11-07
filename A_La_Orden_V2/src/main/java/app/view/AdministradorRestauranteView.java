@@ -250,20 +250,6 @@ private void terminarPedido() {
         }
     }
 
-    // Validar codigo QR al entregar el pedido
-    private void validarEntregaQR() {
-
-        System.out.println("Ingrese el código QR del cliente:");
-        String codigoQR = scanner.nextLine().trim();
-
-        if (pedidoService.escanearQr(codigoQR)) {
-            System.out.println("¡Código QR validado correctamente!");
-            System.out.println("Pedido entregado. Estado: ENTREGADO.");
-        } else {
-            System.out.println("Código QR inválido o pedido no disponible para entrega.");
-        }
-    }
-
     private int leerPedidoId() {
 
         while (true) {
