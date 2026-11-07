@@ -2,14 +2,12 @@ package app.application;
 
 import app.domain.Cliente;
 import app.repository.ClienteRepository;
-import app.repository.RestauranteRepository;
+import app.service.Inputport.RestauranteRepository;
 import app.repository.RestauranteRepositoryImpl;
 import app.service.ClienteService;
 import app.service.RestauranteService;
 import app.view.ClienteView;
 import app.view.RestauranteView;
-
-import java.util.Scanner;
 
 import java.util.Scanner;
 
