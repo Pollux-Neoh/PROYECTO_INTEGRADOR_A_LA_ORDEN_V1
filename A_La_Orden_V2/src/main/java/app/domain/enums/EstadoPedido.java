@@ -4,5 +4,6 @@ public enum EstadoPedido {
     PENDIENTE_CONFIRMACION,
     CONFIRMADO,
     EN_PROCESO,
+    RECHAZADO,
     TERMINADO
 }
