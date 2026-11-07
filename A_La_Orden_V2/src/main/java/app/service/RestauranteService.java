@@ -2,7 +2,7 @@ package app.service;
 
 
 import app.domain.Restaurante;
-import app.service.Inputport.RestauranteRepository;
+import app.repository.RestauranteRepository;
 
 import java.util.Comparator;
 import java.util.List;

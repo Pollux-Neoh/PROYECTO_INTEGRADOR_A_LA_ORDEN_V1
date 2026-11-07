@@ -51,7 +51,6 @@ public class PedidoView {
         }
         System.out.println("Subtotal: " + pedido.getSubtotal());
         System.out.println("Estado: " + pedido.getEstado());
-        mostrarCodigoQr(pedidoId);
     }
 
     public void mostrarMenu(int pedidoId) {
@@ -62,7 +61,6 @@ public class PedidoView {
             System.out.println("3. Modificar cantidad");
             System.out.println("4. Quitar producto");
             System.out.println("5. Revisar y confirmar pedido");
-            System.out.println("6. Escanear QR de un pedido");
             System.out.println("0. Salir");
             System.out.print("Seleccione una opción: ");
             String opcion = scanner.nextLine();
@@ -83,25 +81,12 @@ public class PedidoView {
                 case "5":
                     confirmarPedido(pedidoId);
                     break;
-                case "6":
-                    escanearQr();
-                    break;
                 case "0":
                     continuar = false;
                     break;
                 default:
                     System.out.println("Opción no válida.");
             }
-        }
-    }
-
-    private void escanearQr() {
-        System.out.print("Escanee o ingrese el código QR del cliente: ");
-        String codigoQr = scanner.nextLine().trim();
-        if (pedidoService.escanearQr(codigoQr)) {
-            System.out.println("Pedido validado y marcado como entregado.");
-        } else {
-            System.out.println("Error: el código QR no es válido o el pedido no está activo.");
         }
     }
 
@@ -205,7 +190,6 @@ public class PedidoView {
             System.out.println("Total: " + pago.getMonto());
             System.out.println("Se notificó al restaurante "
                     + pedido.getRestaurante().getNombre() + ".");
-            mostrarCodigoQr(pedidoId);
 
         } else {
 
@@ -213,12 +197,6 @@ public class PedidoView {
         }
     }
 
-    private void mostrarCodigoQr(int pedidoId) {
-        String codigoQr = pedidoService.obtenerQr(String.valueOf(pedidoId));
-        if (codigoQr != null) {
-            System.out.println("Código QR de la compra: " + codigoQr);
-        }
-    }
 
     private void mostrarProductosDisponibles() {
         System.out.println("\n--- PRODUCTOS DISPONIBLES ---");
