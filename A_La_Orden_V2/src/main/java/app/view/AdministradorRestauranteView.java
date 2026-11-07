@@ -4,10 +4,9 @@ import app.domain.AdministradorRestaurante;
 import app.domain.Pedido;
 import app.domain.Pago;
 import app.domain.DetallePedido;
-
+import app.domain.enums.EscanerQr;
 import app.service.PedidoService;
 import app.service.PagoService;
-
 import java.util.List;
 import java.util.Set;
 import java.util.Scanner;
@@ -172,6 +171,48 @@ public class AdministradorRestauranteView {
         }
     }
 
+    private void escanearQr() {
+
+        System.out.println("\n=== ESCANEAR QR DEL CLIENTE ===");
+        System.out.println("Ingrese el código QR (o 0 para cancelar): ");
+
+        String codigoQr = scanner.nextLine().trim();
+
+        if (codigoQr.equals("0")) {
+            System.out.println("Escaneo cancelado.");
+            return;
+        }
+
+        int restauranteId = administrador.getRestaurante().getId();
+
+        EscanerQr resultado = pedidoService.escanearQr(codigoQr, restauranteId);
+
+        mostrarResultadoEscaneo(resultado);
+    }
+
+    private void mostrarResultadoEscaneo(EscanerQr resultado) {
+
+        switch (resultado) {
+
+            case ENTREGADO:
+                System.out.println("¡QR válido! El pedido fue marcado como ENTREGADO.");
+                break;
+
+            case QR_INVALIDO:
+                System.out.println("Error: el código QR no es válido.");
+                break;
+
+            case PEDIDO_NO_ACTIVO:
+                System.out.println("Error: el pedido no está activo "
+                        + "(ya fue entregado, rechazado o no se ha confirmado).");
+                break;
+
+            case RESTAURANTE_INCORRECTO:
+                System.out.println("Error: este pedido pertenece a otro restaurante.");
+                break;
+        }
+    }
+
     private int leerPedidoId() {
 
         while (true) {
@@ -213,6 +254,7 @@ public class AdministradorRestauranteView {
                 System.out.println("\n1. Ver pedidos Entrantes");
                 System.out.println("2. Aceptar pedido");
                 System.out.println("3. Rechazar pedido");
+                System.out.println("4. Escanear QR del cliente");
                 System.out.println("0. Cerrar sesión");
 
                 System.out.println("\nSeleccione una opción: ");
@@ -231,6 +273,10 @@ public class AdministradorRestauranteView {
 
                     case "3":
                         rechazarPedido();
+                        break;
+
+                    case "4":                                            // NUEVO
+                        escanearQr();
                         break;
 
                     case "0":

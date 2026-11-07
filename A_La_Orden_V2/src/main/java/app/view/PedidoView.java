@@ -61,6 +61,7 @@ public class PedidoView {
             System.out.println("3. Modificar cantidad");
             System.out.println("4. Quitar producto");
             System.out.println("5. Revisar y confirmar pedido");
+            System.out.println("6. Ver código QR del pedido");
             System.out.println("0. Salir");
             System.out.print("Seleccione una opción: ");
             String opcion = scanner.nextLine();
@@ -80,6 +81,9 @@ public class PedidoView {
                     break;
                 case "5":
                     confirmarPedido(pedidoId);
+                    break;
+                case "6":                                        // NUEVO (3): acción de la opción
+                    mostrarQr(pedidoId);
                     break;
                 case "0":
                     continuar = false;
@@ -195,6 +199,23 @@ public class PedidoView {
 
             System.out.println("El pedido fue confirmado, pero no se pudo registrar el pago.");
         }
+        mostrarQr(pedidoId);
+    }
+
+    private void mostrarQr(int pedidoId) {
+
+        String codigoQr = pedidoService.obtenerQr(String.valueOf(pedidoId));
+
+        if (codigoQr == null) {
+            System.out.println("Este pedido aún no tiene un código QR disponible.");
+            System.out.println("El QR se genera al confirmar el pedido.");
+            return;
+        }
+
+        System.out.println("\n--- CÓDIGO QR DE TU PEDIDO ---");
+        System.out.println("Pedido #" + pedidoId);
+        System.out.println("Código QR: " + codigoQr);
+        System.out.println("Preséntalo en el restaurante para reclamar tu pedido.");
     }
 
 

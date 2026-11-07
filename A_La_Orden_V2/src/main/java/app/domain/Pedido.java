@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class Pedido {
 
@@ -134,6 +135,8 @@ public class Pedido {
             return false;
         }
         estado = EstadoPedido.CONFIRMADO;
+        codigoQr = "QR-" + id + "-"
+                + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         return true;
     }
 
@@ -153,7 +156,7 @@ public class Pedido {
 
     //Marcar como entregado
     public boolean marcarComoEntregado(String codigoQrEscaneado) {
-        if (estado != EstadoPedido.CONFIRMADO
+        if (!estado.esActivo()
                 || codigoQr == null
                 || !codigoQr.equals(codigoQrEscaneado)) {
             return false;
@@ -162,5 +165,4 @@ public class Pedido {
         estado = EstadoPedido.ENTREGADO;
         return true;
     }
-
 }

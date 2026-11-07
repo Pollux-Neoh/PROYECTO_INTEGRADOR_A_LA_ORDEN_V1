@@ -51,4 +51,8 @@ public class PedidoValidator {
     public static boolean validarCantidad(int cantidad) {
         return cantidad > 0;
     }
+
+    public static boolean validarCodigoQr(String codigoQr) {
+        return codigoQr != null && !codigoQr.trim().isEmpty();
+    }
 }
