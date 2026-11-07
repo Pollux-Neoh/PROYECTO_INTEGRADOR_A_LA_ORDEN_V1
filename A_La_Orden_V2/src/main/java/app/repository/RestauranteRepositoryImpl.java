@@ -11,6 +11,18 @@ public class RestauranteRepositoryImpl implements RestauranteRepository {
 
     private List<Restaurante> listaRestaurantes;
 
+    // Constructor para inicializar la lista y cargar los datos de prueba
+    public RestauranteRepositoryImpl() {
+        listaRestaurantes = new ArrayList<>();
+        cargarDatosPrueba();
+    }
+
+    private void cargarDatosPrueba() {
+        listaRestaurantes.add(new Restaurante(1, "Donde Lola", "https://img.com/lola.jpg", 4.8, 1.2, "Almuerzo Ejecutivo"));
+        listaRestaurantes.add(new Restaurante(2, "El Sazón Paisa", "https://img.com/sazon.jpg", 4.5, 0.5, "Comida Típica"));
+        listaRestaurantes.add(new Restaurante(3, "La Esquina Gourmet", "https://img.com/gourmet.jpg", 4.2, 3.0, "Almuerzo Ejecutivo"));
+        listaRestaurantes.add(new Restaurante(4, "Verde & Sano", "https://img.com/verde.jpg", 4.9, 0.8, "Ensaladas"));
+    }
 
     @Override
     public List<Restaurante> obtenerTodos() {
@@ -21,11 +33,8 @@ public class RestauranteRepositoryImpl implements RestauranteRepository {
     @Override
     public Optional<Restaurante> buscarPorId(int id) {
         // Usamos Streams para filtrar la lista por el ID recibido
-
         return listaRestaurantes.stream()
-                // Convertimos el int id del restaurante a long para comparar
-                .filter(r -> (long) r.getId() == id)
-                // Retorna un Optional con el restaurante si lo encuentra
+                .filter(r -> r.getId() == id)
                 .findFirst();
     }
 }

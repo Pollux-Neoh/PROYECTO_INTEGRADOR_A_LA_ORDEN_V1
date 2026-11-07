@@ -1,7 +1,11 @@
 package app.view;
 
+import app.domain.Cliente;
 import app.domain.Producto;
 import app.domain.Restaurante;
+import app.domain.Pedido;
+import app.service.PagoService;
+import app.service.PedidoService;
 import app.service.RestauranteService;
 
 import java.util.Map;
@@ -15,14 +19,18 @@ public class RestauranteView {
 
     private Scanner scanner;
     private RestauranteService restauranteService;
+    private PedidoService pedidoService;
+    private PagoService pagoService;
 
-    public RestauranteView(RestauranteService restauranteService) {
+    public RestauranteView(RestauranteService restauranteService, PedidoService pedidoService, PagoService pagoService) {
         this.scanner = new Scanner(System.in);
         this.restauranteService = restauranteService;
+        this.pedidoService = pedidoService;
+        this.pagoService = pagoService;
     }
 
     //Menú principal de la funcionalidad US-03 y US-04
-    public void mostrarMenuRestaurantes() {
+    public void mostrarMenuRestaurantes(Cliente cliente) {
         int opcion = -1;
 
         while (opcion != 0) {
@@ -64,7 +72,7 @@ public class RestauranteView {
                     if (scanner.hasNextInt()) {
                         int idRestaurante = scanner.nextInt();
                         scanner.nextLine();
-                        mostrarMenuRestaurante(idRestaurante);
+                        mostrarMenuRestaurante(idRestaurante, cliente);
                     } else {
                         scanner.nextLine();
                         System.out.println("ID no válido.");
@@ -108,7 +116,7 @@ public class RestauranteView {
 
     //Metodo Mostrar Restaurantes
 
-    public void mostrarMenuRestaurante(int idRestaurante) {
+    public void mostrarMenuRestaurante(int idRestaurante, Cliente cliente) {
         Optional<Restaurante> restauranteOptional = restauranteService.obtenerRestaurantePorId(idRestaurante);
 
         if (restauranteOptional.isEmpty()) {
@@ -121,7 +129,46 @@ public class RestauranteView {
 
         System.out.println("\n=============================================");
         System.out.println("          MENÚ: " + restaurante.getNombre().toUpperCase());
-        System.out.println("=============================================");
+        System.out.println("=============================================\n");
+
+        // Opciones para continuar después de consultar el menú.
+        System.out.println("1. Realizar pedido");
+        System.out.println("0. Volver");
+        System.out.print("Seleccione una opción: ");
+
+        String opcion = scanner.nextLine();
+
+        if ("1".equals(opcion)) {
+
+            // Creamos el pedido asociado al cliente y restaurante seleccionados.
+            Pedido pedido = pedidoService.crearPedido(cliente, restaurante);
+
+            if (pedido != null) {
+
+                System.out.println("\n¡Pedido creado exitosamente!");
+                System.out.println("Número de pedido: " + pedido.getId());
+
+                // Abrimos la vista del carrito con los productos del restaurante.
+                PedidoView pedidoView = new PedidoView(
+                        pedidoService,
+                        pagoService,
+                        productos
+                );
+
+                pedidoView.mostrarMenu(pedido.getId());
+
+            } else {
+                System.out.println("No fue posible crear el pedido.");
+            }
+
+        } else if ("0".equals(opcion)) {
+
+            System.out.println("Regresando al listado de restaurantes...");
+
+        } else {
+
+            System.out.println("Opción no válida.");
+        }
 
         if (productos == null|| productos.isEmpty()) {
             System.out.println("El restaurante aun no tiene productos");
