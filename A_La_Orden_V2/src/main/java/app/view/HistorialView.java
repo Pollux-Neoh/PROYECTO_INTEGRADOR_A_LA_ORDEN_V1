@@ -36,6 +36,7 @@ public class HistorialView {
         //Buscamos los pedidos registrados.
         List<Pedido> pedidos = pedidoRepository.listar();
 
+        boolean tienePedidos = false;
         boolean tieneFacturas = false;
 
         DateTimeFormatter formatoFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -45,6 +46,13 @@ public class HistorialView {
 
             if (pedido.getCliente() != null
                     && pedido.getCliente().getId() == cliente.getId()) {
+
+                tienePedidos = true;
+
+                System.out.println("\n-----------------");
+                System.out.println("Pedido: " + pedido.getId());
+                System.out.println("Estado: " + pedido.getEstado());
+                System.out.println("-----------------");
 
                 // Consultamos las facturas asociadas al pedido.
                 List<Factura> facturas =
@@ -76,8 +84,12 @@ public class HistorialView {
                 }
             }
         }
-        if (!tieneFacturas) {
-            System.out.println("Todavia no tienes factura registradas.");
+        if (!tienePedidos) {
+            System.out.println("Todavia no tienes pedidos registrados.");
+        }
+
+        if (tienePedidos && !tieneFacturas) {
+            System.out.println("Todavia no tienes facturas registradas.");
         }
     }
 }

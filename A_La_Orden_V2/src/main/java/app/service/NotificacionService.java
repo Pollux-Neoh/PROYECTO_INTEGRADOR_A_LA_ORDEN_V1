@@ -42,6 +42,19 @@ public class NotificacionService {
         ));
     }
 
+    // Informa al cliente que su pedido está listo para recoger.
+    public void notificarPedidoListo(Pedido pedido) {
+
+        String mensaje = "Tu pedido " + pedido.getId()
+                + " está listo para recoger.";
+
+        notificacionesCliente.add(new NotificacionCliente(
+                pedido.getCliente().getId(),
+                pedido.getId(),
+                mensaje
+        ));
+    }
+
     public List<NotificacionComercio> listarNotificaciones() {
         return Collections.unmodifiableList(new ArrayList<>(notificaciones));
     }

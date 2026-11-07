@@ -172,6 +172,54 @@ public class AdministradorRestauranteView {
         }
     }
 
+
+   //Terminar preparacion del pedido
+    private void terminarPedido() {
+
+        int pedidoId = leerPedidoId();
+
+        if (pedidoService.terminarPedido(pedidoId)) {
+            System.out.println("¡Preparación finalizada!");
+            System.out.println("El pedido ahora está TERMINADO.");
+            System.out.println("Recuerda marcarlo como LISTO cuando esté disponible para recoger.");
+        } else {
+            System.out.println("No se pudo terminar el pedido.");
+            System.out.println("Verifica el ID y el estado del pedido.");
+        }
+    }
+
+
+    //Marcar como listo para recoger
+    private void marcarPedidoComoListo() {
+
+        int pedidoId = leerPedidoId();
+
+        if (pedidoService.marcarPedidoComoListo(
+                pedidoId,
+                administrador.getRestaurante().getId()
+        )) {
+            System.out.println("¡Pedido marcado como LISTO!");
+            System.out.println("El cliente ha recibido una notificación.");
+        } else {
+            System.out.println("No se pudo marcar el pedido como listo.");
+            System.out.println("Verifica que el pedido esté en estado TERMINADO.");
+        }
+    }
+
+    // Validar codigo QR al entregar el pedido
+    private void validarEntregaQR() {
+
+        System.out.println("Ingrese el código QR del cliente:");
+        String codigoQR = scanner.nextLine().trim();
+
+        if (pedidoService.escanearQr(codigoQR)) {
+            System.out.println("¡Código QR validado correctamente!");
+            System.out.println("Pedido entregado. Estado: ENTREGADO.");
+        } else {
+            System.out.println("Código QR inválido o pedido no disponible para entrega.");
+        }
+    }
+
     private int leerPedidoId() {
 
         while (true) {
@@ -210,9 +258,12 @@ public class AdministradorRestauranteView {
                 System.out.println("Restaurante: "
                         + administrador.getRestaurante().getNombre());
 
-                System.out.println("\n1. Ver pedidos Entrantes");
+                System.out.println("\n1. Ver pedidos entrantes");
                 System.out.println("2. Aceptar pedido");
                 System.out.println("3. Rechazar pedido");
+                System.out.println("4. Terminar preparación del pedido");
+                System.out.println("5. Marcar pedido como listo");
+                System.out.println("6. Validar entrega mediante QR");
                 System.out.println("0. Cerrar sesión");
 
                 System.out.println("\nSeleccione una opción: ");
@@ -231,6 +282,18 @@ public class AdministradorRestauranteView {
 
                     case "3":
                         rechazarPedido();
+                        break;
+
+                    case "4":
+                        terminarPedido();
+                        break;
+
+                    case "5":
+                        marcarPedidoComoListo();
+                        break;
+
+                    case "6":
+                        validarEntregaQR();
                         break;
 
                     case "0":
