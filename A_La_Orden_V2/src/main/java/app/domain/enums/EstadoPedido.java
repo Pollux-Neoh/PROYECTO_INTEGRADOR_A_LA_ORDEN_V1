@@ -2,5 +2,8 @@ package app.domain.enums;
 
 public enum EstadoPedido {
     PENDIENTE_CONFIRMACION,
-    CONFIRMADO
+    CONFIRMADO,
+    EN_PROCESO,
+    RECHAZADO,
+    TERMINADO
 }

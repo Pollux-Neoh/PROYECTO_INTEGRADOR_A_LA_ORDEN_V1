@@ -18,6 +18,7 @@ public class Pedido {
     private final Map<Integer, DetallePedido> detalles;
     private EstadoPedido estado;
     private String codigoQr;
+    private Integer tiempoEstimadoMinutos; //es integer porque inicialmente el pedido no tendra un tiempo sera un null
 
     public Pedido(int id, Cliente cliente) {
         this(id, cliente, null);
@@ -50,8 +51,48 @@ public class Pedido {
         return estado;
     }
 
+    public Integer getTiempoEstimadoMinutos() {
+        return tiempoEstimadoMinutos;
+    }
+
+    //Permite guardar el tiempo calculado y el ajustado por el comerciante, no iguales o inf a 0
+    public boolean actualizarTiempoEstimado(int minutos) {
+        if (minutos <= 0) {
+            return false;
+        }
+
+        this.tiempoEstimadoMinutos = minutos;
+        return true;
+    }
+
     public List<DetallePedido> getDetalles() {
         return Collections.unmodifiableList(new ArrayList<>(detalles.values()));
+    }
+
+    public boolean terminar() {
+        if (estado != EstadoPedido.EN_PROCESO) {
+            return false;
+        }
+        estado = EstadoPedido.TERMINADO;
+        return true;
+    }
+
+    public boolean aceptar() {
+        if (estado != EstadoPedido.CONFIRMADO) {
+            return false;
+        }
+
+        estado = EstadoPedido.EN_PROCESO;
+        return true;
+    }
+
+    public boolean rechazar() {
+        if (estado != EstadoPedido.CONFIRMADO) {
+            return false;
+        }
+
+        estado = EstadoPedido.RECHAZADO;
+        return true;
     }
 
     public void agregarProducto(Producto producto, int cantidad) {
