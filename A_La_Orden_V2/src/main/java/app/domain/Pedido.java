@@ -140,16 +140,6 @@ public class Pedido {
         return true;
     }
 
-    public boolean marcarComoEntregado(String codigoQrEscaneado) {
-        if (estado != EstadoPedido.CONFIRMADO
-                || codigoQr == null
-                || !codigoQr.equals(codigoQrEscaneado)) {
-            return false;
-        }
-        estado = EstadoPedido.ENTREGADO;
-        return true;
-    }
-
     public BigDecimal getSubtotal() {
         BigDecimal subtotal = BigDecimal.ZERO;
         for (DetallePedido detalle : detalles.values()) {
