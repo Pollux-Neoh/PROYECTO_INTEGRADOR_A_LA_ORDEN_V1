@@ -273,6 +273,16 @@ public class PedidoService implements PedidoInput {
                 .orElse(null);
     }
 
+    @Override
+    public boolean escanearQr(String codigoQr) {
+        Optional<Pedido> pedido = pedidoRepository.buscarPorCodigoQr(codigoQr);
+        if (!pedido.isPresent() || !pedido.get().marcarComoEntregado(codigoQr)) {
+            return false;
+        }
+        pedidoRepository.guardar(pedido.get());
+        return true;
+    }
+
     private Pedido buscarPedido(int id) {
         Optional<Pedido> pedido = pedidoRepository.buscarPorId(String.valueOf(id));
         return pedido.orElse(null);
