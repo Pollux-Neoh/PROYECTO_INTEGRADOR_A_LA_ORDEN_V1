@@ -165,17 +165,35 @@ public class PedidoView {
             return;
         }
 
-        // Solicitamos el met pago
+
+
+        // Solicitamos el métodopago
         System.out.println("\n--- MÉTODO DE PAGO ---");
         System.out.println("1. Efectivo");
+        System.out.println("2. Tarjeta");
         System.out.println("0. Cancelar");
         System.out.print("Seleccione una opción: ");
 
         String metodoPago = scanner.nextLine().trim();
 
-        if (!"1".equals(metodoPago)) {
-            System.out.println("Selección cancelada. El pedido sigue pendiente.");
-            return;
+        MetodoPago tipoPago;
+
+        switch (metodoPago) {
+            case "1":
+                tipoPago = MetodoPago.EFECTIVO;
+                break;
+
+            case "2":
+                tipoPago = MetodoPago.TARJETA;
+                break;
+
+            case "0":
+                System.out.println("Selección cancelada. El pedido sigue pendiente.");
+                return;
+
+            default:
+                System.out.println("Opción no válida. El pedido sigue pendiente.");
+                return;
         }
 
         // Confirmamos el pedido antes de registrar el pago.
@@ -184,10 +202,10 @@ public class PedidoView {
             return;
         }
 
-        // Registramos el pago en efectivo.
+        // Registramos el pago seleccionado por el cliente.
         Pago pago = pagoService.registrarPago(
                 pedidoId,
-                MetodoPago.EFECTIVO
+                tipoPago
         );
         if (pago != null && pago.confirmar()) {
 

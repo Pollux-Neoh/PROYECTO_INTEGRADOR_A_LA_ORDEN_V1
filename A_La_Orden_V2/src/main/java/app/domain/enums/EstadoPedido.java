@@ -15,4 +15,6 @@ public enum EstadoPedido {
                     || this == TERMINADO;
         }
 
+    TERMINADO,
+    LISTO
 }
