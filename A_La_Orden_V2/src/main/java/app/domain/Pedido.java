@@ -16,6 +16,7 @@ public class Pedido {
     private final Restaurante restaurante;
     private final Map<Integer, DetallePedido> detalles;
     private EstadoPedido estado;
+    private Integer tiempoEstimadoMinutos; //es integer porque inicialmente el pedido no tendra un tiempo sera un null
 
     public Pedido(int id, Cliente cliente) {
         this(id, cliente, null);
@@ -43,6 +44,20 @@ public class Pedido {
 
     public EstadoPedido getEstado() {
         return estado;
+    }
+
+    public Integer getTiempoEstimadoMinutos() {
+        return tiempoEstimadoMinutos;
+    }
+
+    //Permite guardar el tiempo calculado y el ajustado por el comerciante, no iguales o inf a 0
+    public boolean actualizarTiempoEstimado(int minutos) {
+        if (minutos <= 0) {
+            return false;
+        }
+
+        this.tiempoEstimadoMinutos = minutos;
+        return true;
     }
 
     public List<DetallePedido> getDetalles() {

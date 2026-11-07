@@ -109,13 +109,74 @@ public class PedidoService {
         return pedido == null ? null : pedido.getSubtotal();
     }
 
-    public boolean confirmarPedido(int pedidoId) {
+    // Calcula el tiempo estimado según los pedidos activos del restaurante.
+    public int calcularTiempoEstimado(int restauranteId) {
+
+        int pedidosActivos = 0;
+
+        for (Pedido pedido : pedidoRepository.listar()) {
+
+            if (pedido.getRestaurante() != null
+                    && pedido.getRestaurante().getId() == restauranteId
+                    && (pedido.getEstado() == EstadoPedido.CONFIRMADO
+                    || pedido.getEstado() == EstadoPedido.EN_PROCESO)) {
+
+                pedidosActivos++;
+            }
+        }
+
+        return 10 + (5 * pedidosActivos);
+    }
+
+
+    // Permite al comerciante ajustar el tiempo estimado.
+    public boolean ajustarTiempoEstimado(int pedidoId, int minutos) {
+
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+
+        if (pedido == null
+                || (pedido.getEstado() != EstadoPedido.CONFIRMADO
+                && pedido.getEstado() != EstadoPedido.EN_PROCESO)) {
+            return false;
+        }
+
+        if (!pedido.actualizarTiempoEstimado(minutos)) {
+            return false;
+        }
+
+        pedidoRepository.guardar(pedido);
+
+        // Notifica al cliente el tiempo actualizado
+        notificacionService.notificarTiempoEstimado(pedido);
+
+        return true;
+    }
+
+
+
+    public boolean confirmarPedido(int pedidoId) {
+
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+
         if (!PedidoValidator.validarConfirmacion(pedido) || !pedido.confirmar()) {
             return false;
         }
+
+        // Calcula el tiempo estimado
+        int tiempoEstimado = calcularTiempoEstimado(
+                pedido.getRestaurante().getId()
+        );
+
+        pedido.actualizarTiempoEstimado(tiempoEstimado);
+
         pedidoRepository.guardar(pedido);
+
+        // Notifica al comerciante
         notificacionService.notificarPedidoConfirmado(pedido);
+
+        // Notifica al cliente
+        notificacionService.notificarTiempoEstimado(pedido);
+
         return true;
     }
 
