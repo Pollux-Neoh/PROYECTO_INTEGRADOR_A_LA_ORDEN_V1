@@ -6,6 +6,15 @@ public enum EstadoPedido {
     ENTREGADO,
     EN_PROCESO,
     RECHAZADO,
+    TERMINADO;
+
+
+        public boolean esActivo() {
+            return this == CONFIRMADO
+                    || this == EN_PROCESO
+                    || this == TERMINADO;
+        }
+
     TERMINADO,
     LISTO
 }

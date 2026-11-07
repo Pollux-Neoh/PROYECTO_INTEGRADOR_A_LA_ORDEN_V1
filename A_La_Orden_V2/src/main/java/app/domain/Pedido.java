@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class Pedido {
 
@@ -142,6 +143,8 @@ public class Pedido {
         }
 
         estado = EstadoPedido.CONFIRMADO;
+        codigoQr = "QR-" + id + "-"
+                + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         generarCodigoQr();
 
         return true;

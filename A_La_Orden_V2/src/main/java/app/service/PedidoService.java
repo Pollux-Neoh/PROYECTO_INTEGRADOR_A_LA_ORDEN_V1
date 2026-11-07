@@ -4,6 +4,7 @@ import app.domain.Cliente;
 import app.domain.DetallePedido;
 import app.domain.Pedido;
 import app.domain.Producto;
+import app.domain.enums.EscanerQr;
 import app.domain.enums.EstadoPedido;
 import app.service.InputPort.PedidoInput;
 import app.service.OutputPort.PedidoOutport;
@@ -15,7 +16,7 @@ import java.util.Optional;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PedidoService implements PedidoInput {
+public class PedidoService<ResultadoEscaneo> implements PedidoInput {
 
     private final PedidoOutport pedidoRepository;
     private final NotificacionService notificacionService;
@@ -159,6 +160,10 @@ public class PedidoService implements PedidoInput {
     public BigDecimal obtenerSubtotal(int pedidoId) {
         Pedido pedido = buscarPedido(pedidoId);
         return pedido == null ? null : pedido.getSubtotal();
+    }
+
+    private Pedido buscarPedido(int pedidoId) {
+        return pedidoRepository.buscarPorId(pedidoId);
     }
 
     // Calcula el tiempo estimado según los pedidos activos del restaurante.
@@ -312,18 +317,24 @@ public class PedidoService implements PedidoInput {
     }
 
     @Override
-    public boolean escanearQr(String codigoQr) {
-        Optional<Pedido> pedido = pedidoRepository.buscarPorCodigoQr(codigoQr);
-        if (!pedido.isPresent() || !pedido.get().marcarComoEntregado(codigoQr)) {
-            return false;
+    public EscanerQr escanearQr(String codigoQr, int restauranteId) {
+        if (!PedidoValidator.validarCodigoQr(codigoQr)) {
+            return EscanerQr.QR_INVALIDO;
         }
-        pedidoRepository.guardar(pedido.get());
-        return true;
-    }
-
-    private Pedido buscarPedido(int id) {
-        Optional<Pedido> pedido = pedidoRepository.buscarPorId(String.valueOf(id));
-        return pedido.orElse(null);
+        Optional<Pedido> encontrado = pedidoRepository.buscarPorCodigoQr(codigoQr);
+        if (!encontrado.isPresent()) {
+            return EscanerQr.QR_INVALIDO;
+        }
+        Pedido pedido = encontrado.get();
+        if (pedido.getRestaurante() == null
+                || pedido.getRestaurante().getId() != restauranteId) {
+            return EscanerQr.RESTAURANTE_INCORRECTO;
+        }
+        if (!pedido.marcarComoEntregado(codigoQr)) {
+            return EscanerQr.PEDIDO_NO_ACTIVO;
+        }
+        pedidoRepository.guardar(pedido);
+        return EscanerQr.ENTREGADO;
     }
 
 
