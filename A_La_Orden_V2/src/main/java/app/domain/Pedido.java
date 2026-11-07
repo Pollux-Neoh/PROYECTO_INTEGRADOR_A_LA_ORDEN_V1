@@ -17,6 +17,7 @@ public class Pedido {
     private final Map<Integer, DetallePedido> detalles;
     private EstadoPedido estado;
     private Integer tiempoEstimadoMinutos; //es integer porque inicialmente el pedido no tendra un tiempo sera un null
+    private String codigoQr;
 
     public Pedido(int id, Cliente cliente) {
         this(id, cliente, null);
@@ -49,6 +50,8 @@ public class Pedido {
     public Integer getTiempoEstimadoMinutos() {
         return tiempoEstimadoMinutos;
     }
+
+    public String getCodigoQr() {return codigoQr;}
 
     //Permite guardar el tiempo calculado y el ajustado por el comerciante, no iguales o inf a 0
     public boolean actualizarTiempoEstimado(int minutos) {
@@ -147,4 +150,17 @@ public class Pedido {
             throw new IllegalStateException("No se puede modificar un pedido confirmado.");
         }
     }
+
+    //Marcar como entregado
+    public boolean marcarComoEntregado(String codigoQrEscaneado) {
+        if (estado != EstadoPedido.CONFIRMADO
+                || codigoQr == null
+                || !codigoQr.equals(codigoQrEscaneado)) {
+            return false;
+        }
+
+        estado = EstadoPedido.ENTREGADO;
+        return true;
+    }
+
 }
