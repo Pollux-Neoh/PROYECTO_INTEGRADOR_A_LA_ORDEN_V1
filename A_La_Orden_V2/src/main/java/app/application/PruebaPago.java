@@ -6,6 +6,7 @@ import app.domain.Pago;
 import app.domain.Pedido;
 import app.domain.Producto;
 import app.domain.Restaurante;
+import app.domain.NotificacionCliente;
 
 import app.repository.PagoRepository;
 import app.repository.PedidoRepository;
@@ -211,5 +212,32 @@ public class PruebaPago {
         if (nuevoPago != null) {
             System.out.println("Estado del nuevo pago: " + nuevoPago.getEstado());
         }
+
+
+
+        System.out.println("Tiempo sugerido: "
+                + pedido.getTiempoEstimadoMinutos() + " minutos");
+
+        boolean ajuste = pedidoService.ajustarTiempoEstimado(
+                pedido.getId(), 30
+        );
+
+        System.out.println("¿Se ajustó el tiempo?: " + ajuste);
+        System.out.println("Tiempo final: "
+                + pedido.getTiempoEstimadoMinutos() + " minutos");
+
+
+        System.out.println("\n===== NOTIFICACIÓN AL CLIENTE =====");
+
+        for (NotificacionCliente notificacion :
+                pedidoService.getNotificacionService().listarNotificacionesCliente()) {
+
+            System.out.println("Cliente ID: " + notificacion.getClienteId());
+            System.out.println("Pedido ID: " + notificacion.getPedidoId());
+            System.out.println("Mensaje: " + notificacion.getMensaje());
+        }
+
     }
+
+
 }
