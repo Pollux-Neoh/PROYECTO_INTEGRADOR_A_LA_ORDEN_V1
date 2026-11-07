@@ -38,4 +38,21 @@ public class PagoValidator {
                 && monto.compareTo(BigDecimal.ZERO) > 0
                 && monto.compareTo(pedido.getSubtotal()) == 0;
     }
+
+    // Valida los datos básicos de una tarjeta.
+    public static boolean validarDatosTarjeta(
+            String numeroTarjeta,
+            String titular,
+            String fechaVencimiento,
+            String cvv) {
+
+        return numeroTarjeta != null
+                && numeroTarjeta.matches("[0-9]{16}")
+                && titular != null
+                && !titular.trim().isEmpty()
+                && fechaVencimiento != null
+                && fechaVencimiento.matches("(0[1-9]|1[0-2])/[0-9]{2}")
+                && cvv != null
+                && cvv.matches("[0-9]{3,4}");
+    }
 }
