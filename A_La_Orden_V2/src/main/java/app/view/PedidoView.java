@@ -179,8 +179,10 @@ public class PedidoView {
         }
 
         // Registramos el pago en efectivo.
-        Pago pago = pagoService.registrarPagoEfectivo(pedidoId);
-
+        Pago pago = pagoService.registrarPago(
+                pedidoId,
+                MetodoPago.EFECTIVO
+        );
         if (pago != null && pago.confirmar()) {
 
             System.out.println("\n¡Pedido confirmado exitosamente!");
@@ -224,5 +226,6 @@ public class PedidoView {
                 System.out.println("Ingrese un número entero válido.");
             }
         }
+
     }
 }

@@ -8,6 +8,7 @@ import app.service.ClienteService;
 import app.service.RestauranteService;
 import app.view.ClienteView;
 import app.view.RestauranteView;
+import app.domain.enums.MetodoPago;
 
 import java.util.Scanner;
 
@@ -143,7 +144,7 @@ public class Application {
             pedidoService.agregarProducto(1001, gaseosa, 1);
 
             if (pedidoService.confirmarPedido(1001)) {
-                pagoService.registrarPagoEfectivo(1001);
+                pagoService.registrarPago(1001, MetodoPago.EFECTIVO);
             }
         }
 
@@ -158,7 +159,7 @@ public class Application {
             pedidoService.agregarProducto(1002, gaseosa, 2);
 
             if (pedidoService.confirmarPedido(1002)) {
-                pagoService.registrarPagoEfectivo(1002);
+                pagoService.registrarPago(1002, MetodoPago.EFECTIVO);
             }
         }
 
