@@ -1,5 +1,5 @@
 
-      package app.service.Inputport;
+      package app.repository;
 
       import app.domain.Restaurante;
       import java.util.List;

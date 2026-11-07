@@ -51,7 +51,6 @@ public class PedidoView {
         }
         System.out.println("Subtotal: " + pedido.getSubtotal());
         System.out.println("Estado: " + pedido.getEstado());
-        mostrarCodigoQr(pedidoId);
     }
 
     public void mostrarMenu(int pedidoId) {
@@ -191,7 +190,6 @@ public class PedidoView {
             System.out.println("Total: " + pago.getMonto());
             System.out.println("Se notificó al restaurante "
                     + pedido.getRestaurante().getNombre() + ".");
-            mostrarCodigoQr(pedidoId);
 
         } else {
 
@@ -199,12 +197,6 @@ public class PedidoView {
         }
     }
 
-    private void mostrarCodigoQr(int pedidoId) {
-        String codigoQr = pedidoService.obtenerQr(String.valueOf(pedidoId));
-        if (codigoQr != null) {
-            System.out.println("Código QR de la compra: " + codigoQr);
-        }
-    }
 
     private void mostrarProductosDisponibles() {
         System.out.println("\n--- PRODUCTOS DISPONIBLES ---");
