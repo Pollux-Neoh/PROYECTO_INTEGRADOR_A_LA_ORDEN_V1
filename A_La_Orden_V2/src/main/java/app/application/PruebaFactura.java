@@ -7,6 +7,7 @@ import app.domain.Pedido;
 import app.domain.Producto;
 import app.domain.Restaurante;
 
+import app.domain.enums.EscanerQr;
 import app.domain.enums.MetodoPago;
 import app.repository.FacturaRepository;
 import app.repository.FacturaRepositoryMemoria;
@@ -266,15 +267,25 @@ public class PruebaFactura {
         System.out.println("\nCódigo QR disponible: " + (codigoQr != null));
 
 // 9. Simulamos el escaneo del QR.
-        boolean entregado = pedidoService.escanearQr(codigoQr);
+        EscanerQr primerResultado = pedidoService.escanearQr(
+                codigoQr,
+                pedidoListo.getRestaurante().getId()
+        );
 
-        System.out.println("¿Pedido entregado?: " + entregado);
-        System.out.println("Estado después del escaneo: " + pedidoListo.getEstado());
+        System.out.println("¿Pedido entregado?: "
+                + (primerResultado == EscanerQr.ENTREGADO));
+
+        System.out.println("Estado después del escaneo: "
+                + pedidoListo.getEstado());
 
 // 10. Intentamos escanear nuevamente el mismo código.
-        boolean segundoEscaneo = pedidoService.escanearQr(codigoQr);
+        EscanerQr segundoResultado = pedidoService.escanearQr(
+                codigoQr,
+                pedidoListo.getRestaurante().getId()
+        );
 
-        System.out.println("¿Se permitió un segundo escaneo?: " + segundoEscaneo);
+        System.out.println("¿Se permitió un segundo escaneo?: "
+                + (segundoResultado == EscanerQr.ENTREGADO));
     }
 
 

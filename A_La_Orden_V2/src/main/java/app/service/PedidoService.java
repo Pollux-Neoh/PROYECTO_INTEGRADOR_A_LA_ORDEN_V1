@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PedidoService<ResultadoEscaneo> implements PedidoInput {
+public class PedidoService implements PedidoInput {
 
     private final PedidoOutport pedidoRepository;
     private final NotificacionService notificacionService;
@@ -336,33 +336,5 @@ public class PedidoService<ResultadoEscaneo> implements PedidoInput {
         pedidoRepository.guardar(pedido);
         return EscanerQr.ENTREGADO;
     }
-
-
-    public boolean escanearQr(String codigoQr, int restauranteId) {
-        if (codigoQr == null || codigoQr.isBlank()) {
-            return false;
-        }
-
-        Optional<Pedido> pedidoOptional =
-                pedidoRepository.buscarPorCodigoQr(codigoQr);
-
-        if (!pedidoOptional.isPresent()) {
-            return false;
-        }
-
-        Pedido pedido = pedidoOptional.get();
-
-        if (pedido.getRestaurante() == null
-                || pedido.getRestaurante().getId() != restauranteId
-                || !pedido.marcarComoEntregado(codigoQr)) {
-            return false;
-        }
-
-        pedidoRepository.guardar(pedido);
-        return true;
-    }
-
-
-
 
 }
