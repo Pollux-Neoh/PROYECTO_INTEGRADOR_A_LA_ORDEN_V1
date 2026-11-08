@@ -1,10 +1,19 @@
 package app.domain.enums;
 
 public enum EstadoPedido {
+
     PENDIENTE_CONFIRMACION,
     CONFIRMADO,
-    ENTREGADO
     EN_PROCESO,
-    RECHAZADO,
-    TERMINADO
+    TERMINADO,
+    LISTO,
+    ENTREGADO,
+    RECHAZADO;
+
+    public boolean esActivo() {
+        return this == CONFIRMADO
+                || this == EN_PROCESO
+                || this == TERMINADO
+                || this == LISTO;
+    }
 }

@@ -4,10 +4,9 @@ import app.domain.AdministradorRestaurante;
 import app.domain.Pedido;
 import app.domain.Pago;
 import app.domain.DetallePedido;
-
+import app.domain.enums.EscanerQr;
 import app.service.PedidoService;
 import app.service.PagoService;
-
 import java.util.List;
 import java.util.Set;
 import java.util.Scanner;
@@ -172,6 +171,85 @@ public class AdministradorRestauranteView {
         }
     }
 
+// Escanear QR del cliente y validar la entrega
+private void escanearQr() {
+
+    System.out.println("\n=== ESCANEAR QR DEL CLIENTE ===");
+    System.out.println("Ingrese el código QR (o 0 para cancelar): ");
+
+    String codigoQr = scanner.nextLine().trim();
+
+    if (codigoQr.equals("0")) {
+        System.out.println("Escaneo cancelado.");
+        return;
+    }
+
+    int restauranteId = administrador.getRestaurante().getId();
+
+    EscanerQr resultado = pedidoService.escanearQr(codigoQr, restauranteId);
+
+    mostrarResultadoEscaneo(resultado);
+}
+
+// Mostrar resultado de la validación del QR
+private void mostrarResultadoEscaneo(EscanerQr resultado) {
+
+    switch (resultado) {
+
+        case ENTREGADO:
+            System.out.println("¡QR válido! El pedido fue marcado como ENTREGADO.");
+            break;
+
+        case QR_INVALIDO:
+            System.out.println("Error: el código QR no es válido.");
+            break;
+
+        case PEDIDO_NO_ACTIVO:
+            System.out.println("Error: el pedido no está activo "
+                    + "(ya fue entregado, rechazado o no se ha confirmado).");
+            break;
+
+        case RESTAURANTE_INCORRECTO:
+            System.out.println("Error: este pedido pertenece a otro restaurante.");
+            break;
+    }
+}
+
+// Terminar preparación del pedido
+private void terminarPedido() {
+
+    int pedidoId = leerPedidoId();
+
+    if (pedidoService.terminarPedido(
+            pedidoId,
+            administrador.getRestaurante().getId()
+    )) {
+        System.out.println("¡Preparación finalizada!");
+        System.out.println("El pedido ahora está TERMINADO.");
+        System.out.println("Recuerda marcarlo como LISTO cuando esté disponible para recoger.");
+    } else {
+        System.out.println("No se pudo terminar el pedido.");
+        System.out.println("Verifica el ID y el estado del pedido.");
+    }
+}
+
+    //Marcar como listo para recoger
+    private void marcarPedidoComoListo() {
+
+        int pedidoId = leerPedidoId();
+
+        if (pedidoService.marcarPedidoComoListo(
+                pedidoId,
+                administrador.getRestaurante().getId()
+        )) {
+            System.out.println("¡Pedido marcado como LISTO!");
+            System.out.println("El cliente ha recibido una notificación.");
+        } else {
+            System.out.println("No se pudo marcar el pedido como listo.");
+            System.out.println("Verifica que el pedido esté en estado TERMINADO.");
+        }
+    }
+
     private int leerPedidoId() {
 
         while (true) {
@@ -210,10 +288,13 @@ public class AdministradorRestauranteView {
                 System.out.println("Restaurante: "
                         + administrador.getRestaurante().getNombre());
 
-                System.out.println("\n1. Ver pedidos Entrantes");
-                System.out.println("2. Aceptar pedido");
-                System.out.println("3. Rechazar pedido");
-                System.out.println("0. Cerrar sesión");
+System.out.println("\n1. Ver pedidos entrantes");
+System.out.println("2. Aceptar pedido");
+System.out.println("3. Rechazar pedido");
+System.out.println("4. Terminar preparación del pedido");
+System.out.println("5. Marcar pedido como listo");
+System.out.println("6. Escanear QR del cliente");
+System.out.println("0. Cerrar sesión");
 
                 System.out.println("\nSeleccione una opción: ");
 
@@ -231,6 +312,18 @@ public class AdministradorRestauranteView {
 
                     case "3":
                         rechazarPedido();
+                        break;
+                    
+                    case "4":
+                        terminarPedido();
+                        break;
+
+                    case "5":
+                        marcarPedidoComoListo();
+                        break;
+
+                    case "6":
+                        escanearQr();
                         break;
 
                     case "0":

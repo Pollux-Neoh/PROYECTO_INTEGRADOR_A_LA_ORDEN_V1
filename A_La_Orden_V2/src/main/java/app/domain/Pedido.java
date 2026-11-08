@@ -17,8 +17,8 @@ public class Pedido {
     private final Restaurante restaurante;
     private final Map<Integer, DetallePedido> detalles;
     private EstadoPedido estado;
-    private String codigoQr;
     private Integer tiempoEstimadoMinutos; //es integer porque inicialmente el pedido no tendra un tiempo sera un null
+    private String codigoQr;
 
     public Pedido(int id, Cliente cliente) {
         this(id, cliente, null);
@@ -32,9 +32,6 @@ public class Pedido {
         this.estado = EstadoPedido.PENDIENTE_CONFIRMACION;
     }
 
-    public String getCodigoQr() {
-        return codigoQr;
-    }
     public int getId() {
         return id;
     }
@@ -54,6 +51,15 @@ public class Pedido {
     public Integer getTiempoEstimadoMinutos() {
         return tiempoEstimadoMinutos;
     }
+
+    public String getCodigoQr() {return codigoQr;}
+
+
+
+
+
+
+
 
     //Permite guardar el tiempo calculado y el ajustado por el comerciante, no iguales o inf a 0
     public boolean actualizarTiempoEstimado(int minutos) {
@@ -135,18 +141,12 @@ public class Pedido {
                 || detalles.isEmpty()) {
             return false;
         }
-        codigoQr = UUID.randomUUID().toString();
-        estado = EstadoPedido.CONFIRMADO;
-        return true;
-    }
 
-    public boolean marcarComoEntregado(String codigoQrEscaneado) {
-        if (estado != EstadoPedido.CONFIRMADO
-                || codigoQr == null
-                || !codigoQr.equals(codigoQrEscaneado)) {
-            return false;
-        }
-        estado = EstadoPedido.ENTREGADO;
+        estado = EstadoPedido.CONFIRMADO;
+        codigoQr = "QR-" + id + "-"
+                + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        generarCodigoQr();
+
         return true;
     }
 
@@ -163,4 +163,35 @@ public class Pedido {
             throw new IllegalStateException("No se puede modificar un pedido confirmado.");
         }
     }
+
+    // Generación del código QR.
+    private void generarCodigoQr() {
+        this.codigoQr = "PEDIDO-" + id + "-"
+                + java.util.UUID.randomUUID();
+    }
+
+    // Marcar como entregado mediante validación QR.
+    public boolean marcarComoEntregado(String codigoQrEscaneado) {
+
+        if (estado != EstadoPedido.LISTO
+                || codigoQr == null
+                || !codigoQr.equals(codigoQrEscaneado)) {
+            return false;
+        }
+
+        estado = EstadoPedido.ENTREGADO;
+        return true;
+    }
+
+    //Marcar como Listo
+    public void marcarComoListo() {
+        if (estado != EstadoPedido.TERMINADO) {
+            throw new IllegalStateException(
+                    "Solo se pueden marcar como listos los pedidos terminados."
+            );
+        }
+
+        estado = EstadoPedido.LISTO;
+    }
+
 }

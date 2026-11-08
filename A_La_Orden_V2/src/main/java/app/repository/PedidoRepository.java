@@ -24,6 +24,7 @@ public class PedidoRepository implements PedidoOutport {
         return pedido;
     }
 
+    @Override
     public Pedido buscarPorId(int id) {
         return pedidos.get(id);
     }
@@ -31,7 +32,9 @@ public class PedidoRepository implements PedidoOutport {
     @Override
     public Optional<Pedido> buscarPorId(String id) {
         try {
-            return Optional.ofNullable(buscarPorId(Integer.parseInt(id)));
+            return Optional.ofNullable(
+                    buscarPorId(Integer.parseInt(id))
+            );
         } catch (NumberFormatException exception) {
             return Optional.empty();
         }
@@ -42,11 +45,13 @@ public class PedidoRepository implements PedidoOutport {
         if (codigoQr == null || codigoQr.trim().isEmpty()) {
             return Optional.empty();
         }
+
         for (Pedido pedido : pedidos.values()) {
             if (codigoQr.equals(pedido.getCodigoQr())) {
                 return Optional.of(pedido);
             }
         }
+
         return Optional.empty();
     }
 
@@ -54,7 +59,10 @@ public class PedidoRepository implements PedidoOutport {
         return pedidos.remove(id) != null;
     }
 
+    @Override
     public List<Pedido> listar() {
-        return Collections.unmodifiableList(new ArrayList<>(pedidos.values()));
+        return Collections.unmodifiableList(
+                new ArrayList<>(pedidos.values())
+        );
     }
 }

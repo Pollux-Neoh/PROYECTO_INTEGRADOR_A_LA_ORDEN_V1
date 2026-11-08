@@ -4,8 +4,9 @@ import app.domain.Cliente;
 import app.domain.DetallePedido;
 import app.domain.Pedido;
 import app.domain.Producto;
+import app.domain.enums.EscanerQr;
 import app.domain.enums.EstadoPedido;
-import app.service.Inputport.PedidoInput;
+import app.service.InputPort.PedidoInput;
 import app.service.OutputPort.PedidoOutport;
 import app.validators.PedidoValidator;
 import app.domain.Restaurante;
@@ -58,19 +59,44 @@ public class PedidoService implements PedidoInput {
         return buscarPedido(id);
     }
 
-    public boolean terminarPedido(int pedidoId) {
+    public boolean terminarPedido(int pedidoId, int restauranteId) {
+
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
-        if (pedido == null || !pedido.terminar()) {
+
+        if (pedido == null
+                || pedido.getRestaurante() == null
+                || pedido.getRestaurante().getId() != restauranteId
+                || !pedido.terminar()) {
             return false;
         }
+
         pedidoRepository.guardar(pedido);
+        return true;
+    }
+
+    // validamos estado y guardamos
+    public boolean marcarPedidoComoListo(int pedidoId, int restauranteId) {
+
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+
+        if (pedido == null
+                || pedido.getRestaurante() == null
+                || pedido.getRestaurante().getId() != restauranteId
+                || pedido.getEstado() != EstadoPedido.TERMINADO) {
+            return false;
+        }
+
+        pedido.marcarComoListo();
+
+        pedidoRepository.guardar(pedido);
+        notificacionService.notificarPedidoListo(pedido);
+
         return true;
     }
 
 
 
     public boolean agregarProducto(int pedidoId, Producto producto, int cantidad) {
-        Pedido pedido = buscarPedido(pedidoId);
 
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
 
@@ -136,6 +162,10 @@ public class PedidoService implements PedidoInput {
         return pedido == null ? null : pedido.getSubtotal();
     }
 
+    private Pedido buscarPedido(int pedidoId) {
+        return pedidoRepository.buscarPorId(pedidoId);
+    }
+
     // Calcula el tiempo estimado según los pedidos activos del restaurante.
     public int calcularTiempoEstimado(int restauranteId) {
 
@@ -182,7 +212,7 @@ public class PedidoService implements PedidoInput {
 
 
     public boolean confirmarPedido(int pedidoId) {
-        Pedido pedido = buscarPedido(pedidoId);
+
 
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
 
@@ -228,21 +258,32 @@ public class PedidoService implements PedidoInput {
         return pedidosEntrantes;
     }
 
-    public boolean aceptarPedido(int pedidoId, int restauranteId) {
-
+    public boolean terminarPedido(int pedidoId) {
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
 
-        if (pedido == null
-            || pedido.getRestaurante() == null
-            || pedido.getRestaurante().getId() != restauranteId
-            || !pedido.aceptar()) {
-
+        if (pedido == null || !pedido.terminar()) {
             return false;
         }
 
         pedidoRepository.guardar(pedido);
         return true;
     }
+
+    public boolean aceptarPedido(int pedidoId, int restauranteId) {
+        Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
+
+        if (pedido == null
+                || pedido.getRestaurante() == null
+                || pedido.getRestaurante().getId() != restauranteId
+                || !pedido.aceptar()) {
+            return false;
+        }
+
+        pedidoRepository.guardar(pedido);
+        return true;
+    }
+
+
 
     public boolean rechazarPedido(int pedidoId, int restauranteId) {
 
@@ -262,29 +303,38 @@ public class PedidoService implements PedidoInput {
         return notificacionService;
     }
 
+
+    //El Qr solo esta disp para recoger cuando el pedido esta listo
     @Override
     public String obtenerQr(String idPedido) {
         if (idPedido == null) {
             return null;
         }
         return pedidoRepository.buscarPorId(idPedido)
-                .filter(pedido -> pedido.getEstado() == EstadoPedido.CONFIRMADO)
+                .filter(pedido -> pedido.getEstado() == EstadoPedido.LISTO)
                 .map(Pedido::getCodigoQr)
                 .orElse(null);
     }
 
     @Override
-    public boolean escanearQr(String codigoQr) {
-        Optional<Pedido> pedido = pedidoRepository.buscarPorCodigoQr(codigoQr);
-        if (!pedido.isPresent() || !pedido.get().marcarComoEntregado(codigoQr)) {
-            return false;
+    public EscanerQr escanearQr(String codigoQr, int restauranteId) {
+        if (!PedidoValidator.validarCodigoQr(codigoQr)) {
+            return EscanerQr.QR_INVALIDO;
         }
-        pedidoRepository.guardar(pedido.get());
-        return true;
+        Optional<Pedido> encontrado = pedidoRepository.buscarPorCodigoQr(codigoQr);
+        if (!encontrado.isPresent()) {
+            return EscanerQr.QR_INVALIDO;
+        }
+        Pedido pedido = encontrado.get();
+        if (pedido.getRestaurante() == null
+                || pedido.getRestaurante().getId() != restauranteId) {
+            return EscanerQr.RESTAURANTE_INCORRECTO;
+        }
+        if (!pedido.marcarComoEntregado(codigoQr)) {
+            return EscanerQr.PEDIDO_NO_ACTIVO;
+        }
+        pedidoRepository.guardar(pedido);
+        return EscanerQr.ENTREGADO;
     }
 
-    private Pedido buscarPedido(int id) {
-        Optional<Pedido> pedido = pedidoRepository.buscarPorId(String.valueOf(id));
-        return pedido.orElse(null);
-    }
 }

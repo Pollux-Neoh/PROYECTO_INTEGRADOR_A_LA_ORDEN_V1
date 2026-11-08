@@ -105,6 +105,7 @@ public class RestauranteView {
         System.out.println("=============================================");
 
         for (Restaurante r : lista) {
+            System.out.println("ID:           " + r.getId());
             System.out.println("Nombre:       " + r.getNombre());
             System.out.println("Categoría:    " + r.getCategoria());
             System.out.println("Calificación: ⭐ " + r.getCalificacionPromedio());

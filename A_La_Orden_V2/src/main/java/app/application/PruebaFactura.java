@@ -7,6 +7,7 @@ import app.domain.Pedido;
 import app.domain.Producto;
 import app.domain.Restaurante;
 
+import app.domain.enums.EscanerQr;
 import app.domain.enums.MetodoPago;
 import app.repository.FacturaRepository;
 import app.repository.FacturaRepositoryMemoria;
@@ -17,6 +18,10 @@ import app.repository.PedidoRepository;
 import app.service.FacturaService;
 import app.service.PagoService;
 import app.service.PedidoService;
+import app.service.NotificacionService;
+
+import app.domain.NotificacionCliente;
+
 
 import java.math.BigDecimal;
 
@@ -75,9 +80,10 @@ public class PruebaFactura {
                 new FacturaRepositoryMemoria();
 
         // 5. Creamos los servicios.
-        PedidoService pedidoService =
-                new PedidoService(pedidoRepository);
+        NotificacionService notificacionService = new NotificacionService();
 
+        PedidoService pedidoService =
+                new PedidoService(pedidoRepository, notificacionService);
         PagoService pagoService =
                 new PagoService(pagoRepository, pedidoRepository);
 
@@ -200,5 +206,87 @@ public class PruebaFactura {
         System.out.println("\n==== HISTORIAL DEL CLIENTE ====");
 
         historialView.mostrarHistorial(cliente);
+
+
+        // ===== PRUEBA US-21: MARCAR PEDIDO COMO LISTO ===
+
+
+
+        System.out.println("\n===== PRUEBA US-21 =====");
+
+// 1. Creamos un pedido nuevo reutilizando los datos existentes.
+        Pedido pedidoListo = pedidoService.crearPedido(
+                300,
+                cliente,
+                restaurante
+        );
+
+// 2. Agregamos un producto.
+        pedidoService.agregarProducto(300, hamburguesa, 1);
+
+// 3. Confirmamos el pedido.
+        boolean confirmadoListo = pedidoService.confirmarPedido(300);
+
+        System.out.println("Pedido confirmado: " + confirmadoListo);
+
+// 4. El restaurante acepta el pedido.
+        boolean aceptado = pedidoService.aceptarPedido(
+                300,
+                restaurante.getId()
+        );
+
+        System.out.println("Pedido aceptado: " + aceptado);
+        System.out.println("Estado actual: " + pedidoListo.getEstado());
+
+// 5. El restaurante termina la preparación.
+        boolean terminado = pedidoService.terminarPedido(300);
+
+        System.out.println("Pedido terminado: " + terminado);
+        System.out.println("Estado actual: " + pedidoListo.getEstado());
+
+// 6. El restaurante marca el pedido como listo.
+        boolean marcadoListo = pedidoService.marcarPedidoComoListo(300, restaurante.getId());
+
+        System.out.println("¿Pedido marcado como listo?: " + marcadoListo);
+        System.out.println("Estado final: " + pedidoListo.getEstado());
+
+// 7. Consultamos la notificación enviada al cliente.
+        System.out.println("\n--- NOTIFICACIONES DEL CLIENTE ---");
+
+        for (NotificacionCliente notificacion :
+                notificacionService.listarNotificacionesCliente()) {
+
+            if (notificacion.getPedidoId() == 300) {
+                System.out.println("Mensaje: " + notificacion.getMensaje());
+            }
+        }
+
+// 8. Consultamos el código QR cuando el pedido está listo.
+        String codigoQr = pedidoService.obtenerQr("300");
+
+        System.out.println("\nCódigo QR disponible: " + (codigoQr != null));
+
+// 9. Simulamos el escaneo del QR.
+        EscanerQr primerResultado = pedidoService.escanearQr(
+                codigoQr,
+                pedidoListo.getRestaurante().getId()
+        );
+
+        System.out.println("¿Pedido entregado?: "
+                + (primerResultado == EscanerQr.ENTREGADO));
+
+        System.out.println("Estado después del escaneo: "
+                + pedidoListo.getEstado());
+
+// 10. Intentamos escanear nuevamente el mismo código.
+        EscanerQr segundoResultado = pedidoService.escanearQr(
+                codigoQr,
+                pedidoListo.getRestaurante().getId()
+        );
+
+        System.out.println("¿Se permitió un segundo escaneo?: "
+                + (segundoResultado == EscanerQr.ENTREGADO));
     }
+
+
 }
