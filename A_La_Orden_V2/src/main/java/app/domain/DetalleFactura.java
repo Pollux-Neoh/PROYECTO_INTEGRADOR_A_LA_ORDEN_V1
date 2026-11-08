@@ -48,7 +48,25 @@ public class DetalleFactura {
         // Calculamos el subtotal del producto.
         this.subtotal = precioUnitario.multiply(BigDecimal.valueOf(cantidad)
         );
+
+
     }
+
+    // Reconstruye un detalle de factura recuperado de MySQL.
+    public static DetalleFactura restaurar(
+            int productoId,
+            String nombreProducto,
+            int cantidad,
+            BigDecimal precioUnitario) {
+
+        return new DetalleFactura(
+                productoId,
+                nombreProducto,
+                cantidad,
+                precioUnitario
+        );
+    }
+
 
     public int getProductoId() {
         return productoId;

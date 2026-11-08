@@ -57,6 +57,57 @@ public class Pedido {
 
 
 
+    //Este métodopermite reconstruir un pedido sin llamar a confirmar(), sin cambiar su estado y sin generar otro QR.
+    public static Pedido restaurar(
+            int id,
+            Cliente cliente,
+            Restaurante restaurante,
+            EstadoPedido estado,
+            Integer tiempoEstimadoMinutos,
+            String codigoQr,
+            List<DetallePedido> detallesRecuperados) {
+
+        if (id <= 0 || cliente == null || estado == null) {
+            throw new IllegalArgumentException(
+                    "Los datos principales del pedido son inválidos."
+            );
+        }
+
+        if (tiempoEstimadoMinutos != null && tiempoEstimadoMinutos <= 0) {
+            throw new IllegalArgumentException(
+                    "El tiempo estimado debe ser positivo."
+            );
+        }
+
+        Pedido pedido = new Pedido(id, cliente, restaurante);
+
+        pedido.estado = estado;
+        pedido.tiempoEstimadoMinutos = tiempoEstimadoMinutos;
+        pedido.codigoQr = codigoQr;
+
+        if (detallesRecuperados != null) {
+            for (DetallePedido detalle : detallesRecuperados) {
+
+                if (detalle == null || detalle.getProducto() == null) {
+                    throw new IllegalArgumentException(
+                            "El detalle del pedido no es válido."
+                    );
+                }
+
+                int productoId = detalle.getProducto().getId();
+
+                if (pedido.detalles.containsKey(productoId)) {
+                    throw new IllegalArgumentException(
+                            "El pedido contiene productos duplicados."
+                    );
+                }
+
+                pedido.detalles.put(productoId, detalle);
+            }
+        }
+
+        return pedido;
+    }
 
 
 
@@ -143,8 +194,6 @@ public class Pedido {
         }
 
         estado = EstadoPedido.CONFIRMADO;
-        codigoQr = "QR-" + id + "-"
-                + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         generarCodigoQr();
 
         return true;
