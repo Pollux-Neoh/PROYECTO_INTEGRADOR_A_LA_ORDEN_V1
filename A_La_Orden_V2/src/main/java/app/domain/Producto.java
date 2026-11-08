@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 public class Producto {
 
     private final int id;
+    private final int restauranteId;
     private String nombre;
     private String descripcion;
     private BigDecimal precio;
@@ -14,18 +15,20 @@ public class Producto {
     // Constructor para productos que ya tienen un identificador.
     public Producto(
             int id,
+            int restauranteId,
             String nombre,
             String descripcion,
             BigDecimal precio,
             boolean disponible,
             String categoria
     ) {
-        this(id, nombre, descripcion, precio, disponible, categoria, false);
+        this(id, restauranteId, nombre, descripcion, precio, disponible, categoria, false);
     }
 
     // Constructor interno que permite crear temporalmente un producto con ID 0.
     private Producto(
             int id,
+            int restauranteId,
             String nombre,
             String descripcion,
             BigDecimal precio,
@@ -45,7 +48,14 @@ public class Producto {
             );
         }
 
+        if (restauranteId <= 0) {
+            throw new IllegalArgumentException(
+                    "El ID del restaurante debe ser mayor que cero."
+            );
+        }
+
         this.id = id;
+        this.restauranteId = restauranteId;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
@@ -55,6 +65,7 @@ public class Producto {
 
     // Crea un producto nuevo que todavía no tiene ID en la base de datos.
     public static Producto crearNuevo(
+            int restauranteId,
             String nombre,
             String descripcion,
             BigDecimal precio,
@@ -63,6 +74,7 @@ public class Producto {
     ) {
         return new Producto(
                 0,
+                restauranteId,
                 nombre,
                 descripcion,
                 precio,
@@ -89,6 +101,7 @@ public class Producto {
 
         return new Producto(
                 idGenerado,
+                restauranteId,
                 nombre,
                 descripcion,
                 precio,
@@ -100,6 +113,7 @@ public class Producto {
     // Reconstruye un producto recuperado de la base de datos.
     public static Producto restaurar(
             int id,
+            int restauranteId,
             String nombre,
             String descripcion,
             BigDecimal precio,
@@ -108,6 +122,7 @@ public class Producto {
     ) {
         return new Producto(
                 id,
+                restauranteId,
                 nombre,
                 descripcion,
                 precio,
@@ -118,6 +133,10 @@ public class Producto {
 
     public int getId() {
         return id;
+    }
+
+    public int getRestauranteId() {
+        return restauranteId;
     }
 
     public String getNombre() {

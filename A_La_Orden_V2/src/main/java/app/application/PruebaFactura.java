@@ -54,9 +54,10 @@ public class PruebaFactura {
           "Comida rápida"
         );
 
-        // 3. Creamos los productos.
+// 3. Creamos los productos.
         Producto hamburguesa = new Producto(
                 1,
+                restaurante.getId(),
                 "Hamburguesa",
                 "Hamburguesa especial",
                 new BigDecimal("35000"),
@@ -65,12 +66,13 @@ public class PruebaFactura {
         );
 
         Producto gaseosa = new Producto(
-              2,
-              "Gaseosa",
-              "Gaseosa personal",
-              new BigDecimal("5000"),
-              true,
-              "Bebidas"
+                2,
+                restaurante.getId(),
+                "Gaseosa",
+                "Gaseosa personal",
+                new BigDecimal("5000"),
+                true,
+                "Bebidas"
         );
 
         // 4. Creamos los repositorios.

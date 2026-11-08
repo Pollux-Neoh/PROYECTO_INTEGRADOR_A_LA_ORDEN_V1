@@ -1,17 +1,23 @@
 package app.service;
 
 import app.domain.Producto;
+import app.domain.Restaurante;
 import app.repository.ProductoRepository;
-import java.math.BigDecimal;
+import app.repository.RestauranteRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 public class ProductoService {
 
     private final ProductoRepository productoRepository;
+    private final RestauranteRepository restauranteRepository;
 
-    public ProductoService(ProductoRepository productoRepository) {
+    public ProductoService(
+            ProductoRepository productoRepository,
+            RestauranteRepository restauranteRepository
+    ) {
 
         if (productoRepository == null) {
             throw new IllegalArgumentException(
@@ -19,17 +25,37 @@ public class ProductoService {
             );
         }
 
+        if (restauranteRepository == null) {
+            throw new IllegalArgumentException(
+                    "El repositorio de restaurantes no puede ser nulo."
+            );
+        }
+
         this.productoRepository = productoRepository;
+        this.restauranteRepository = restauranteRepository;
     }
 
-    // Registra un producto nuevo con ID automático.
+    // Registra un producto nuevo asociado a un restaurante existente.
     public Producto registrarProducto(
+            int restauranteId,
             String nombre,
             String descripcion,
             BigDecimal precio,
             boolean disponible,
             String categoria
     ) {
+
+        Restaurante restaurante = restauranteRepository
+                .buscarPorId(restauranteId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El restaurante seleccionado no existe."
+                ));
+
+        if (restauranteId <= 0) {
+            throw new IllegalArgumentException(
+                    "El ID del restaurante debe ser mayor que cero."
+            );
+        }
 
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException(
@@ -50,6 +76,7 @@ public class ProductoService {
         }
 
         Producto producto = Producto.crearNuevo(
+                restauranteId,
                 nombre,
                 descripcion,
                 precio,
@@ -57,7 +84,11 @@ public class ProductoService {
                 categoria
         );
 
-        return productoRepository.guardar(producto);
+        Producto productoGuardado = productoRepository.guardar(producto);
+
+        restaurante.agregarProducto(productoGuardado);
+
+        return productoGuardado;
     }
 
     // Busca un producto por su ID.
@@ -79,17 +110,53 @@ public class ProductoService {
             );
         }
 
-        if (!productoRepository.buscarPorId(producto.getId()).isPresent()) {
+        Producto productoExistente = productoRepository
+                .buscarPorId(producto.getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No existe el producto que se desea actualizar."
+                ));
+
+        if (productoExistente.getRestauranteId() != producto.getRestauranteId()) {
             throw new IllegalArgumentException(
-                    "No existe el producto que se desea actualizar."
+                    "No se puede cambiar el restaurante de un producto existente."
             );
         }
 
-        return productoRepository.actualizar(producto);
+        Restaurante restaurante = restauranteRepository
+                .buscarPorId(producto.getRestauranteId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El restaurante asociado al producto no existe."
+                ));
+
+        Producto productoActualizado = productoRepository.actualizar(producto);
+
+        restaurante.actualizarProducto(productoActualizado);
+
+        return productoActualizado;
     }
 
-    // Elimina un producto por su ID.
+    // Elimina un producto del repositorio y del menú del restaurante.
     public boolean eliminarProducto(int id) {
-        return productoRepository.eliminar(id);
+
+        Optional<Producto> productoEncontrado =
+                productoRepository.buscarPorId(id);
+
+        if (!productoEncontrado.isPresent()) {
+            return false;
+        }
+
+        Producto producto = productoEncontrado.get();
+
+        boolean eliminado = productoRepository.eliminar(id);
+
+        if (eliminado) {
+            restauranteRepository.buscarPorId(producto.getRestauranteId())
+                    .ifPresent(restaurante ->
+                            restaurante.eliminarProducto(id)
+                    );
+        }
+
+        return eliminado;
     }
 }
+

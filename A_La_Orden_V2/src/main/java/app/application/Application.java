@@ -54,7 +54,10 @@ public class Application {
                 new ProductoRepositoryMemoria();
 
         ProductoService productoService =
-                new ProductoService(productoRepository);
+                new ProductoService(
+                        productoRepository,
+                        restauranteRepository
+                );
 
         // Repositorio de clientes.
         ClienteRepository clienteRepository = new ClienteRepositoryMemoria();
@@ -74,14 +77,15 @@ public class Application {
 // El repositorio genera automáticamente sus identificadores.
 
         Producto bandejaPaisa = productoService.registrarProducto(
+                restauranteDemo.getId(),
                 "Bandeja Paisa",
                 "Plato típico Colombiano",
                 new BigDecimal("25000"),
                 true,
                 "Platos principales"
         );
-
         Producto arepaQueso = productoService.registrarProducto(
+                restauranteDemo.getId(),
                 "Arepa paisa",
                 "Plato típico Colombiano",
                 new BigDecimal("8000"),
@@ -90,6 +94,7 @@ public class Application {
         );
 
         Producto gaseosa = productoService.registrarProducto(
+                restauranteDemo.getId(),
                 "Gaseosa",
                 "Bebida personal",
                 new BigDecimal("5000"),
@@ -97,10 +102,6 @@ public class Application {
                 "Bebidas"
         );
 
-
-        restauranteDemo.agregarProducto(bandejaPaisa);
-        restauranteDemo.agregarProducto(arepaQueso);
-        restauranteDemo.agregarProducto(gaseosa);
 
 // Generamos el hash de la contraseña del administrador.
         String contraseniaAdminHash = BCrypt.hashpw(
