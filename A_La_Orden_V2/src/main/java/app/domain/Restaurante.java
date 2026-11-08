@@ -90,7 +90,7 @@ public class Restaurante {
         );
     }
 
-    // Reemplaza el contenido del menú sin cambiar la lista interna.
+    // Reemplaza el menú validando que todos los productos pertenezcan al restaurante.
     public void setMenu(List<Producto> menu) {
 
         if (menu == null) {
@@ -105,11 +105,19 @@ public class Restaurante {
             );
         }
 
+        for (Producto producto : menu) {
+            if (producto.getRestauranteId() != this.id) {
+                throw new IllegalArgumentException(
+                        "El producto no pertenece a este restaurante."
+                );
+            }
+        }
+
         this.menu.clear();
         this.menu.addAll(menu);
     }
 
-    // Agrega un producto al menú.
+    // Agrega un producto al menú si pertenece a este restaurante.
     public void agregarProducto(Producto producto) {
 
         if (producto == null) {
@@ -118,6 +126,42 @@ public class Restaurante {
             );
         }
 
+        if (producto.getRestauranteId() != this.id) {
+            throw new IllegalArgumentException(
+                    "El producto no pertenece a este restaurante."
+            );
+        }
+
         this.menu.add(producto);
+    }
+
+
+    // Reemplaza un producto existente dentro del menú.
+    public void actualizarProducto(Producto producto) {
+
+        if (producto == null) {
+            throw new IllegalArgumentException(
+                    "El producto no puede ser nulo."
+            );
+        }
+
+        if (producto.getRestauranteId() != this.id) {
+            throw new IllegalArgumentException(
+                    "El producto no pertenece a este restaurante."
+            );
+        }
+
+        for (int i = 0; i < menu.size(); i++) {
+            if (menu.get(i).getId() == producto.getId()) {
+                menu.set(i, producto);
+                return;
+            }
+        }
+    }
+
+    // Elimina un producto del menú mediante su ID.
+    public void eliminarProducto(int productoId) {
+
+        menu.removeIf(producto -> producto.getId() == productoId);
     }
 }

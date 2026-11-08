@@ -47,6 +47,7 @@ public class PruebaPago {
         // 3. Creamos un producto.
         Producto producto = new Producto(
                 1,
+                restaurante.getId(),
                 "Hamburguesa",
                 "Hamburguesa especial",
                 new BigDecimal("35000"),
