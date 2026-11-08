@@ -4,17 +4,19 @@ import app.domain.Cliente;
 import app.domain.DetallePedido;
 import app.domain.Pedido;
 import app.domain.Producto;
+import app.domain.Restaurante;
 import app.domain.enums.EscanerQr;
 import app.domain.enums.EstadoPedido;
+import app.repository.NotificacionClienteRepositoryMemoria;
+import app.repository.NotificacionComercioRepositoryMemoria;
 import app.service.InputPort.PedidoInput;
 import app.service.OutputPort.PedidoOutport;
 import app.validators.PedidoValidator;
-import app.domain.Restaurante;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class PedidoService implements PedidoInput {
 
@@ -22,10 +24,23 @@ public class PedidoService implements PedidoInput {
     private final NotificacionService notificacionService;
 
     public PedidoService(PedidoOutport pedidoRepository) {
-        this(pedidoRepository, new NotificacionService());
+        this(
+                pedidoRepository,
+                new NotificacionService(
+                        new NotificacionComercioRepositoryMemoria(),
+                        new NotificacionClienteRepositoryMemoria()
+                )
+        );
     }
 
     public PedidoService(PedidoOutport pedidoRepository, NotificacionService notificacionService) {
+
+        if (pedidoRepository == null || notificacionService == null) {
+            throw new IllegalArgumentException(
+                    "El repositorio y el servicio de notificaciones son obligatorios."
+            );
+        }
+
         this.pedidoRepository = pedidoRepository;
         this.notificacionService = notificacionService;
     }
@@ -35,24 +50,27 @@ public class PedidoService implements PedidoInput {
     }
 
     public Pedido crearPedido(int id, Cliente cliente, Restaurante restaurante) {
+
         Pedido pedido = new Pedido(id, cliente, restaurante);
-        if (!PedidoValidator.validarPedido(pedido) || buscarPedido(id) != null) {
+
+        if (!PedidoValidator.validarPedido(pedido)
+                || buscarPedido(id) != null) {
             return null;
         }
-        pedidoRepository.guardar(pedido);
-        return pedido;
+
+        return pedidoRepository.guardar(pedido);
     }
 
-    // Genera automáticamente el ID de cada nuevo pedido.
+    // Crea automáticamente un pedido con ID asignado por el repositorio.
     public Pedido crearPedido(Cliente cliente, Restaurante restaurante) {
 
-        int siguienteId = 1003;
-
-        while (pedidoRepository.buscarPorId(siguienteId) != null) {
-            siguienteId++;
+        if (cliente == null) {
+            return null;
         }
 
-        return crearPedido(siguienteId, cliente, restaurante);
+        Pedido pedido = Pedido.crearNuevo(cliente, restaurante);
+
+        return pedidoRepository.guardar(pedido);
     }
 
     public Pedido buscarPorId(int id) {
@@ -314,6 +332,34 @@ public class PedidoService implements PedidoInput {
                 .filter(pedido -> pedido.getEstado() == EstadoPedido.LISTO)
                 .map(Pedido::getCodigoQr)
                 .orElse(null);
+    }
+
+
+    public List<Pedido> obtenerPedidosPorCliente(int clienteId) {
+
+        List<Pedido> pedidosCliente = new ArrayList<>();
+
+        if (clienteId <= 0) {
+            return pedidosCliente;
+        }
+
+        for (Pedido pedido : pedidoRepository.listar()) {
+
+            if (pedido != null
+                    && pedido.getCliente() != null
+                    && pedido.getCliente().getId() == clienteId) {
+
+                pedidosCliente.add(pedido);
+            }
+        }
+
+        // Mostrar primero los pedidos más recientes.
+        pedidosCliente.sort(
+                (pedido1, pedido2) ->
+                        Integer.compare(pedido2.getId(), pedido1.getId())
+        );
+
+        return pedidosCliente;
     }
 
     @Override

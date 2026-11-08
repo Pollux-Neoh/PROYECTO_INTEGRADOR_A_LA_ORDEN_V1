@@ -1,6 +1,5 @@
 package app.domain;
 
-
 import java.math.BigDecimal;
 
 // Representa un producto incluido en una factura.
@@ -16,14 +15,13 @@ public class DetalleFactura {
     public DetalleFactura(int productoId, String nombreProducto,
                           int cantidad, BigDecimal precioUnitario) {
 
-
         if (productoId <= 0) {
             throw new IllegalArgumentException(
                     "El ID del producto debe ser positivo."
             );
         }
 
-        if (nombreProducto == null || nombreProducto.isEmpty()) {
+        if (nombreProducto == null || nombreProducto.isBlank()) {
             throw new IllegalArgumentException(
                     "El nombre del producto es obligatorio."
             );
@@ -31,25 +29,26 @@ public class DetalleFactura {
 
         if (cantidad <= 0) {
             throw new IllegalArgumentException(
-                    "La cantidad debe ser mayor que cero"
+                    "La cantidad debe ser mayor que cero."
             );
         }
-        if (precioUnitario == null || precioUnitario.compareTo(BigDecimal.ZERO) <= 0) {
+
+        if (precioUnitario == null ||
+                precioUnitario.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException(
-                    "La precio unitario debe ser mayor que cero"
+                    "El precio unitario debe ser mayor que cero."
             );
         }
 
         this.productoId = productoId;
-        this.nombreProducto = nombreProducto;
+        this.nombreProducto = nombreProducto.trim();
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
 
         // Calculamos el subtotal del producto.
-        this.subtotal = precioUnitario.multiply(BigDecimal.valueOf(cantidad)
+        this.subtotal = precioUnitario.multiply(
+                BigDecimal.valueOf(cantidad)
         );
-
-
     }
 
     // Reconstruye un detalle de factura recuperado de MySQL.
@@ -67,19 +66,22 @@ public class DetalleFactura {
         );
     }
 
-
     public int getProductoId() {
         return productoId;
     }
+
     public String getNombreProducto() {
         return nombreProducto;
     }
+
     public int getCantidad() {
         return cantidad;
     }
+
     public BigDecimal getPrecioUnitario() {
         return precioUnitario;
     }
+
     public BigDecimal getSubtotal() {
         return subtotal;
     }

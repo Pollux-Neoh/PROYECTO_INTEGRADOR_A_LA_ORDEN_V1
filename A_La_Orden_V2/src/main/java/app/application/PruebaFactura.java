@@ -14,6 +14,8 @@ import app.repository.FacturaRepositoryMemoria;
 import app.repository.PagoRepository;
 import app.repository.PagoRepositoryMemoria;
 import app.repository.PedidoRepository;
+import app.repository.NotificacionComercioRepositoryMemoria;
+import app.repository.NotificacionClienteRepositoryMemoria;
 
 import app.service.FacturaService;
 import app.service.PagoService;
@@ -80,7 +82,11 @@ public class PruebaFactura {
                 new FacturaRepositoryMemoria();
 
         // 5. Creamos los servicios.
-        NotificacionService notificacionService = new NotificacionService();
+
+        NotificacionService notificacionService = new NotificacionService(
+                new NotificacionComercioRepositoryMemoria(),
+                new NotificacionClienteRepositoryMemoria()
+        );
 
         PedidoService pedidoService =
                 new PedidoService(pedidoRepository, notificacionService);

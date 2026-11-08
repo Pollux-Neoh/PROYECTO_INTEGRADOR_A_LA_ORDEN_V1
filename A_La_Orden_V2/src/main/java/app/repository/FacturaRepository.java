@@ -7,10 +7,10 @@ import java.util.List;
 // Define las operaciones de almacenamiento de las facturas.
 public interface FacturaRepository {
 
-    // Guarda una factura.
-    void guardar(Factura factura);
+    // Guarda una factura y devuelve la factura registrada.
+    Factura guardar(Factura factura);
 
-    // Busca una factura por su identificador.
+    // Busca una factura asociada al ID del pago.
     Factura buscarPorPago(int pagoId);
 
     // Busca una factura por su identificador.

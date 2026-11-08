@@ -3,6 +3,10 @@ package app.view;
 
 import app.domain.Cliente;
 import app.service.ClienteService;
+import app.domain.Pedido;
+import app.service.PedidoService;
+
+import java.util.List;
 
 import java.util.Scanner;
 
@@ -12,13 +16,21 @@ public class ClienteView {
     private ClienteService clienteService;
     private RestauranteView restauranteView;
     private HistorialView historialView;
+    private PedidoService pedidoService;
 
 
-    public ClienteView(ClienteService clienteService, RestauranteView restauranteView, HistorialView historialView) {
-        scanner = new Scanner(System.in);
+
+    public ClienteView(
+            ClienteService clienteService,
+            RestauranteView restauranteView,
+            HistorialView historialView,
+            PedidoService pedidoService
+    ) {
+        this.scanner = new Scanner(System.in);
         this.clienteService = clienteService;
         this.restauranteView = restauranteView;
         this.historialView = historialView;
+        this.pedidoService = pedidoService;
     }
 
     public void mostrarRegistro(){
@@ -104,19 +116,13 @@ public class ClienteView {
 
         while (continuar) {
 
-        System.out.println("\n================");
-        System.out.println("---- PANTALLA PRINCIPAL ----");
-        System.out.println("================");
-
-        // Mostramos el nombre del cliente que inició sesión
-        System.out.println("\nBienvenido, " +  cliente.getNombre());
-
-            System.out.println("\n1. Explorar restaurantes");
+            System.out.println("\n---- PANTALLA PRINCIPAL ----");
+            System.out.println("1. Explorar restaurantes");
             System.out.println("2. Consultar historial de facturas");
             System.out.println("3. Recuperar contraseña");
-            System.out.println("4. Cerrar sesión");
-
-        System.out.println("\nSeleccione una opción: ");
+            System.out.println("4. Consultar mis pedidos y códigos QR");
+            System.out.println("5. Cerrar sesión");
+            System.out.print("Seleccione una opción: ");
 
         String opcion = scanner.nextLine();
 
@@ -172,17 +178,51 @@ public class ClienteView {
                     break;
 
                 case "4":
-                    // Cambiamos la variable para salir de la pantalla principal,
-                    continuar = false;
-
-                    System.out.println("\nSesión cerrada correctamente.");
+                    mostrarMisPedidos(cliente);
                     break;
+
+                case "5":
+                    System.out.println("Cerrando sesión...");
+                    return;
 
                 default:
                     //Retroalimentación para una opción inexistente
                     System.out.println("\nOpcion no valida.");
                     System.out.println("Por favor, seleccione 1 al 4");
             }
+        }
+    }
+
+
+    private void mostrarMisPedidos(Cliente cliente) {
+
+        List<Pedido> pedidos =
+                pedidoService.obtenerPedidosPorCliente(cliente.getId());
+
+        System.out.println("\n--- MIS PEDIDOS ---");
+
+        if (pedidos.isEmpty()) {
+            System.out.println("No tienes pedidos registrados.");
+            return;
+        }
+
+        for (Pedido pedido : pedidos) {
+
+            System.out.println("\nPedido #" + pedido.getId());
+            System.out.println("Estado: " + pedido.getEstado());
+
+            String codigoQr = pedidoService.obtenerQr(
+                    String.valueOf(pedido.getId())
+            );
+
+            if (codigoQr != null) {
+                System.out.println("Código QR: " + codigoQr);
+                System.out.println("Preséntalo en el restaurante para reclamar tu pedido.");
+            } else {
+                System.out.println("Código QR: Aún no disponible.");
+            }
+
+            System.out.println("--------------------------------");
         }
     }
 }
