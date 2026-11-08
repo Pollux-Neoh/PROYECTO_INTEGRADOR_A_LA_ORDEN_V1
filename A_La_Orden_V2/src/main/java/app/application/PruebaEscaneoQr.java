@@ -19,8 +19,15 @@ public class PruebaEscaneoQr {
                 "123456", "3001234567", true, "Medellín");
         Restaurante restaurante = new Restaurante(1, "Restaurante de prueba",
                 "", 4.5, 2.0, "Comida rápida");
-        Producto producto = new Producto(1, "Hamburguesa", "Hamburguesa especial",
-                new BigDecimal("35000"), true, "Comida rápida");
+        Producto producto = new Producto(
+                1,
+                restaurante.getId(),
+                "Hamburguesa",
+                "Hamburguesa especial",
+                new BigDecimal("35000"),
+                true,
+                "Comida rápida"
+        );
 
         PedidoService service = new PedidoService(new PedidoRepository());
 
