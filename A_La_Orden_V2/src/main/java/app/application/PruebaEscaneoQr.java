@@ -89,5 +89,4 @@ public class PruebaEscaneoQr {
                 + " | esperado: " + esperado + " | obtenido: " + obtenido);
     }
 
-
 }

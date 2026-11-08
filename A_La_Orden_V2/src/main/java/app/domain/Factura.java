@@ -96,6 +96,97 @@ public class Factura {
         }
         this.total = acumulado;
     }
+
+
+    // Constructor privado para reconstruir una factura desde MySQL.
+    private Factura(
+            int id,
+            String numeroFactura,
+            LocalDateTime fechaGeneracion,
+            int pedidoId,
+            int pagoId,
+            int clienteId,
+            String nombreCliente,
+            String correoCliente,
+            String telefonoCliente,
+            String direccionCliente,
+            List<DetalleFactura> detalles) {
+
+        if (id <= 0 || pedidoId <= 0 || pagoId <= 0 || clienteId <= 0) {
+            throw new IllegalArgumentException("Los identificadores deben ser positivos.");
+        }
+
+        if (numeroFactura == null || numeroFactura.isBlank()) {
+            throw new IllegalArgumentException("El número de factura es obligatorio.");
+        }
+
+        if (fechaGeneracion == null) {
+            throw new IllegalArgumentException("La fecha de generación es obligatoria.");
+        }
+
+        if (detalles == null || detalles.isEmpty()) {
+            throw new IllegalArgumentException("La factura debe contener productos.");
+        }
+
+        this.id = id;
+        this.numeroFactura = numeroFactura;
+        this.fechaGeneracion = fechaGeneracion;
+        this.pedidoId = pedidoId;
+        this.pagoId = pagoId;
+
+        this.clienteId = clienteId;
+        this.nombreCliente = nombreCliente;
+        this.correoCliente = correoCliente;
+        this.telefonoCliente = telefonoCliente;
+        this.direccionCliente = direccionCliente;
+
+        this.detalles = Collections.unmodifiableList(new ArrayList<>(detalles));
+
+        BigDecimal acumulado = BigDecimal.ZERO;
+
+        for (DetalleFactura detalle : this.detalles) {
+            if (detalle == null) {
+                throw new IllegalArgumentException(
+                        "La factura no puede contener detalles nulos."
+                );
+            }
+
+            acumulado = acumulado.add(detalle.getSubtotal());
+        }
+
+        this.total = acumulado;
+    }
+
+    // Reconstruye una factura recuperada de MySQL.
+    public static Factura restaurar(
+            int id,
+            String numeroFactura,
+            LocalDateTime fechaGeneracion,
+            int pedidoId,
+            int pagoId,
+            int clienteId,
+            String nombreCliente,
+            String correoCliente,
+            String telefonoCliente,
+            String direccionCliente,
+            List<DetalleFactura> detalles) {
+
+        return new Factura(
+                id,
+                numeroFactura,
+                fechaGeneracion,
+                pedidoId,
+                pagoId,
+                clienteId,
+                nombreCliente,
+                correoCliente,
+                telefonoCliente,
+                direccionCliente,
+                detalles
+        );
+    }
+
+
     public int getId() {
         return id;
     }

@@ -9,6 +9,7 @@ import app.service.RestauranteService;
 import app.view.ClienteView;
 import app.view.RestauranteView;
 import app.domain.enums.MetodoPago;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.Scanner;
 
@@ -71,13 +72,19 @@ public class Application {
         restauranteDemo.agregarProducto(arepaQueso);
         restauranteDemo.agregarProducto(gaseosa);
 
-        // Creamos el administrador asociado al restaurante.
+// Generamos el hash de la contraseña del administrador.
+        String contraseniaAdminHash = BCrypt.hashpw(
+                "Admin12345",
+                BCrypt.gensalt(12)
+        );
+
+// Creamos el administrador con su contraseña protegida.
         AdministradorRestaurante administradorDemo =
                 new AdministradorRestaurante(
                         10,
                         "Administrador El Sazón",
                         "admins@sazon.com",
-                        "admin12345",
+                        contraseniaAdminHash,
                         "3001234567",
                         true,
                         restauranteDemo
@@ -122,16 +129,28 @@ public class Application {
         // PEDIDOS DE PRUEBA - US-19
         // ==============================
 
-        // Cliente utilizado para las pruebas.
+        // Repositorio de clientes.
+        ClienteRepository clienteRepository = new ClienteRepository();
+
+// Generamos el hash de la contraseña del cliente de prueba.
+        String contraseniaClienteHash = BCrypt.hashpw(
+                "Cliente123",
+                BCrypt.gensalt(12)
+        );
+
+// Cliente utilizado para las pruebas.
         Cliente clienteDemo = new Cliente(
                 100,
                 "Camilo Cliente",
                 "cliente@prueba.com",
-                "123456",
+                contraseniaClienteHash,
                 "3001112233",
                 true,
                 "Medellín"
         );
+
+// Registramos el cliente de prueba en el repositorio.
+        clienteRepository.guardar(clienteDemo);
 
         // Pedido 1001: se utilizará para probar la aceptación.
         Pedido pedidoAceptar = pedidoService.crearPedido(
@@ -186,8 +205,7 @@ public class Application {
 
 
 
-        // Módulo de Clientes (Le inyectamos restauranteView para navegar desde la pantalla principal)
-        ClienteRepository clienteRepository = new ClienteRepository();
+        // Módulo de Clientes.
         ClienteService clienteService = new ClienteService(clienteRepository);
         ClienteView clienteView = new ClienteView(
                 clienteService,

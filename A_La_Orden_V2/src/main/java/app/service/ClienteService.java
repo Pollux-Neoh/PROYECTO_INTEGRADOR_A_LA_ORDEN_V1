@@ -3,6 +3,7 @@ package app.service;
 import app.domain.Cliente;
 import app.repository.ClienteRepository;
 import app.validators.ClienteValidator;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class ClienteService {
 
@@ -42,12 +43,18 @@ public class ClienteService {
             return null;
         }
 
-        // Crear el cliente
+// Generamos un hash seguro de la contraseña.
+        String contraseniaHash = BCrypt.hashpw(
+                contrasenia,
+                BCrypt.gensalt(12)
+        );
+
+// Creamos el cliente utilizando el hash.
         Cliente cliente = new Cliente(
                 id,
                 nombre,
                 correo,
-                contrasenia,
+                contraseniaHash,
                 telefono,
                 estado,
                 direccion
@@ -72,7 +79,9 @@ public class ClienteService {
         }
 
         // Comparamos la contraseña ingresada con la contraseña registrada
-        if (!cliente.getContrasenia().equals(contrasenia)) {
+        //BCrypt verifica la contraseña ingresada contra el hash almacenado.
+        if (contrasenia == null ||
+                !BCrypt.checkpw(contrasenia, cliente.getContrasenia())) {
             System.out.println("El correo o la contraseña son incorrectos.");
             return null;
         }
@@ -98,10 +107,16 @@ public class ClienteService {
 
             return false;
         }
-        // Sitodo está correcto, enviamos el cliente y la nueva contraseña al Repository.
+// Generamos un hash seguro para la nueva contraseña.
+        String nuevaContraseniaHash = BCrypt.hashpw(
+                nuevaContrasenia,
+                BCrypt.gensalt(12)
+        );
+
+// Actualizamos la contraseña utilizando el hash.
         clienteRepository.actualizarContraseina(
                 cliente,
-                nuevaContrasenia
+                nuevaContraseniaHash
         );
         System.out.println("Contraseña actualizada correctamente");
 

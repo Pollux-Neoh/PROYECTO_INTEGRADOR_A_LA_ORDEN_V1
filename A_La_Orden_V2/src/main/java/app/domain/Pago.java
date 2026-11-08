@@ -16,8 +16,18 @@ public class Pago {
 
     private EstadoPago estado;
 
-    // Constructor: crea un pago inicialmente pendiente.
+    // Constructor normal: crea un pago pendiente.
     public Pago(int id, Pedido pedido, MetodoPago metodoPago, BigDecimal monto) {
+        this(id, pedido, metodoPago, monto, EstadoPago.PENDIENTE);
+    }
+
+    // Constructor privado: permite reconstruir el estado del pago.
+    private Pago(
+            int id,
+            Pedido pedido,
+            MetodoPago metodoPago,
+            BigDecimal monto,
+            EstadoPago estado) {
 
         if (id <= 0) {
             throw new IllegalArgumentException("El ID del pago debe ser positivo");
@@ -35,11 +45,26 @@ public class Pago {
             throw new IllegalArgumentException("El monto debe ser mayor que cero.");
         }
 
+        if (estado == null) {
+            throw new IllegalArgumentException("El estado del pago es obligatorio.");
+        }
+
         this.id = id;
         this.pedido = pedido;
         this.metodoPago = metodoPago;
         this.monto = monto;
-        this.estado = EstadoPago.PENDIENTE;
+        this.estado = estado;
+    }
+
+    // Reconstruye un pago recuperado de MySQL.
+    public static Pago restaurar(
+            int id,
+            Pedido pedido,
+            MetodoPago metodoPago,
+            BigDecimal monto,
+            EstadoPago estado) {
+
+        return new Pago(id, pedido, metodoPago, monto, estado);
     }
 
     // Consultan la información del pago.
@@ -58,6 +83,8 @@ public class Pago {
     public EstadoPago getEstado() {
         return estado;
     }
+
+
 
     // Cambia el estado del pago cuando se confirma.
     public boolean confirmar() {
