@@ -1,43 +1,39 @@
+
 package app.domain;
 
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Restaurante {
 
-    //Definir atributos
     private int id;
     private String nombre;
     private String imagenUrl;
-    private Double CalificacionPromedio;
+    private Double calificacionPromedio;
     private Double distanciaKm;
     private String categoria;
 
+    // Productos asociados al menú del restaurante.
+    private final List<Producto> menu;
 
-    //El menu del restaurante
-    private List<Producto> menu;
+    public Restaurante(
+            int id,
+            String nombre,
+            String imagenUrl,
+            Double calificacionPromedio,
+            Double distanciaKm,
+            String categoria) {
 
-    //constructor
-    public Restaurante(int id, String nombre,
-                       String imagenUrl,
-                       Double calificacionPromedio,
-                       Double distanciaKm,
-                       String categoria) {
         this.id = id;
         this.nombre = nombre;
         this.imagenUrl = imagenUrl;
-        CalificacionPromedio = calificacionPromedio;
+        this.calificacionPromedio = calificacionPromedio;
         this.distanciaKm = distanciaKm;
         this.categoria = categoria;
 
-        //Inicializar la lista vacia necesario
         this.menu = new ArrayList<>();
     }
-
-
-    // GETTERS SETTERS
-
 
     public int getId() {
         return id;
@@ -64,11 +60,11 @@ public class Restaurante {
     }
 
     public Double getCalificacionPromedio() {
-        return CalificacionPromedio;
+        return calificacionPromedio;
     }
 
     public void setCalificacionPromedio(Double calificacionPromedio) {
-        CalificacionPromedio = calificacionPromedio;
+        this.calificacionPromedio = calificacionPromedio;
     }
 
     public Double getDistanciaKm() {
@@ -87,20 +83,41 @@ public class Restaurante {
         this.categoria = categoria;
     }
 
-
-
-    //METODOS DEL MENU
-
+    // Devuelve una copia no modificable del menú.
     public List<Producto> getMenu() {
-        return menu;
+        return Collections.unmodifiableList(
+                new ArrayList<>(menu)
+        );
     }
 
+    // Reemplaza el contenido del menú sin cambiar la lista interna.
     public void setMenu(List<Producto> menu) {
-        this.menu = menu;
+
+        if (menu == null) {
+            throw new IllegalArgumentException(
+                    "El menú no puede ser nulo."
+            );
+        }
+
+        if (menu.contains(null)) {
+            throw new IllegalArgumentException(
+                    "El menú no puede contener productos nulos."
+            );
+        }
+
+        this.menu.clear();
+        this.menu.addAll(menu);
     }
 
+    // Agrega un producto al menú.
     public void agregarProducto(Producto producto) {
+
+        if (producto == null) {
+            throw new IllegalArgumentException(
+                    "El producto no puede ser nulo."
+            );
+        }
+
         this.menu.add(producto);
     }
-
 }

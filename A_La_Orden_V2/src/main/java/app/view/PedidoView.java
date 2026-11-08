@@ -219,7 +219,10 @@ public class PedidoView {
 
             System.out.println("El pedido fue confirmado, pero no se pudo registrar el pago.");
         }
-        mostrarQr(pedidoId);
+
+        System.out.println("\nTu pedido está pendiente de preparación.");
+        System.out.println("Cuando el restaurante lo marque como LISTO,");
+        System.out.println("podrás consultar tu código QR mediante la opción 6.");
     }
 
     private void mostrarQr(int pedidoId) {

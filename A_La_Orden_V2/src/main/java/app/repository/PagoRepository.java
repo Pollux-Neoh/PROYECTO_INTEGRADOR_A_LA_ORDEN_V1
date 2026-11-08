@@ -1,3 +1,4 @@
+
 package app.repository;
 
 import app.domain.Pago;
@@ -7,8 +8,8 @@ import java.util.List;
 // Define las operaciones de almacenamiento de los pagos.
 public interface PagoRepository {
 
-    // Guarda un pago.
-    void guardar(Pago pago);
+    // Guarda un pago y devuelve el pago registrado con su ID.
+    Pago guardar(Pago pago);
 
     // Actualiza un pago que ya existe.
     void actualizar(Pago pago);

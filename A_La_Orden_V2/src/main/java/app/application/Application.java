@@ -10,6 +10,14 @@ import app.view.ClienteView;
 import app.view.RestauranteView;
 import app.domain.enums.MetodoPago;
 import org.mindrot.jbcrypt.BCrypt;
+import app.repository.ClienteRepositoryMemoria;
+import app.repository.ProductoRepository;
+import app.repository.ProductoRepositoryMemoria;
+import app.service.ProductoService;
+import app.repository.NotificacionComercioRepositoryMemoria;
+import app.repository.NotificacionClienteRepositoryMemoria;
+
+
 
 import java.util.Scanner;
 
@@ -24,6 +32,7 @@ import app.service.PedidoService;
 import app.service.PagoService;
 import app.service.NotificacionService;
 import app.view.AdministradorRestauranteView;
+
 
 import java.math.BigDecimal;
 
@@ -40,6 +49,16 @@ public class Application {
         RestauranteService restauranteService =
                 new RestauranteService(restauranteRepository);
 
+        // Módulo de productos.
+        ProductoRepository productoRepository =
+                new ProductoRepositoryMemoria();
+
+        ProductoService productoService =
+                new ProductoService(productoRepository);
+
+        // Repositorio de clientes.
+        ClienteRepository clienteRepository = new ClienteRepositoryMemoria();
+
         // =======================
         // ADMINISTRADOR DE PRUEBA - US-19
         // =======================
@@ -51,20 +70,31 @@ public class Application {
                         "No se encontró el restaurante de prueba."
                 ));
 
-        // Cargamos productos de prueva para El Sazón Paisa.
-        Producto bandejaPaisa = new Producto(
-                101,"Bandeja Paisa", "Plato típico Colombiano",
-                new BigDecimal("25000"), true, "Platos principales"
+
+// El repositorio genera automáticamente sus identificadores.
+
+        Producto bandejaPaisa = productoService.registrarProducto(
+                "Bandeja Paisa",
+                "Plato típico Colombiano",
+                new BigDecimal("25000"),
+                true,
+                "Platos principales"
         );
 
-        Producto arepaQueso = new Producto(
-                102, "Arepa paisa", "Plato típico Colombiano",
-                new BigDecimal("8000"), true, "Acompañamientos"
+        Producto arepaQueso = productoService.registrarProducto(
+                "Arepa paisa",
+                "Plato típico Colombiano",
+                new BigDecimal("8000"),
+                true,
+                "Acompañamientos"
         );
 
-        Producto gaseosa = new Producto(
-                103,"Gaseosa", "Bedida personal",
-                new BigDecimal("5000"), true, "Bedidas"
+        Producto gaseosa = productoService.registrarProducto(
+                "Gaseosa",
+                "Bebida personal",
+                new BigDecimal("5000"),
+                true,
+                "Bebidas"
         );
 
 
@@ -90,34 +120,38 @@ public class Application {
                         restauranteDemo
                 );
 
+// ==============================
+// MÓDULO DE PEDIDOS, PAGOS Y FACTURACIÓN
+// ==============================
 
-        // ==============================
-        // MÓDULO DE PEDIDOS, PAGOS Y FACTURACIÓN
-        // ==============================
-
-        // Repositorio de pedidos.
+// Repositorio de pedidos.
         PedidoRepository pedidoRepository = new PedidoRepository();
 
-        // Repositorio de pagos.
+// Repositorio de pagos.
         PagoRepository pagoRepository = new PagoRepositoryMemoria();
 
-        // Repositorio de facturas.
+// Repositorio de facturas.
         FacturaRepository facturaRepository = new FacturaRepositoryMemoria();
 
-        // Servicios encargados de pedidos y pagos.
-        NotificacionService notificacionService = new NotificacionService();
+// Servicio de notificaciones.
+        NotificacionService notificacionService = new NotificacionService(
+                new NotificacionComercioRepositoryMemoria(),
+                new NotificacionClienteRepositoryMemoria()
+        );
+
+// Servicio de pedidos.
         PedidoService pedidoService = new PedidoService(
                 pedidoRepository,
                 notificacionService
         );
 
-        // Servicio encargado de gestionar los pagos.
+// Servicio de pagos.
         PagoService pagoService = new PagoService(
                 pagoRepository,
                 pedidoRepository
         );
 
-        // Vista de restaurantes conectada con pedidos y pagos.
+// Vista de restaurantes conectada con pedidos y pagos.
         RestauranteView restauranteView = new RestauranteView(
                 restauranteService,
                 pedidoService,
@@ -129,16 +163,15 @@ public class Application {
         // PEDIDOS DE PRUEBA - US-19
         // ==============================
 
-        // Repositorio de clientes.
-        ClienteRepository clienteRepository = new ClienteRepository();
 
-// Generamos el hash de la contraseña del cliente de prueba.
+
+        // Generamos el hash de la contraseña del cliente de prueba.
         String contraseniaClienteHash = BCrypt.hashpw(
                 "Cliente123",
                 BCrypt.gensalt(12)
         );
 
-// Cliente utilizado para las pruebas.
+        // Cliente utilizado para las pruebas.
         Cliente clienteDemo = new Cliente(
                 100,
                 "Camilo Cliente",
@@ -149,39 +182,67 @@ public class Application {
                 "Medellín"
         );
 
-// Registramos el cliente de prueba en el repositorio.
+        // Registramos el cliente de prueba en el repositorio.
         clienteRepository.guardar(clienteDemo);
 
-        // Pedido 1001: se utilizará para probar la aceptación.
+        // Pedido de prueba para verificar la aceptación.
+        // El repositorio genera automáticamente su identificador.
         Pedido pedidoAceptar = pedidoService.crearPedido(
-                1001, clienteDemo, restauranteDemo
+                clienteDemo, restauranteDemo
         );
 
         if (pedidoAceptar != null) {
 
-            pedidoService.agregarProducto(1001, bandejaPaisa, 2);
-            pedidoService.agregarProducto(1001, gaseosa, 1);
+            int idPedidoAceptar = pedidoAceptar.getId();
 
-            if (pedidoService.confirmarPedido(1001)) {
-                pagoService.registrarPago(1001, MetodoPago.EFECTIVO);
+            pedidoService.agregarProducto(
+                    idPedidoAceptar, bandejaPaisa, 2
+            );
+
+            pedidoService.agregarProducto(
+                    idPedidoAceptar, gaseosa, 1
+            );
+
+            if (pedidoService.confirmarPedido(idPedidoAceptar)) {
+                pagoService.registrarPago(
+                        idPedidoAceptar, MetodoPago.EFECTIVO
+                );
             }
         }
 
-        // Pedido 1002: se utilizará para probar el rechazo.
+        // Pedido de prueba para verificar el rechazo.
+        // El repositorio genera automáticamente su identificador.
         Pedido pedidoRechazar = pedidoService.crearPedido(
-                1002, clienteDemo, restauranteDemo
+                clienteDemo, restauranteDemo
         );
 
         if (pedidoRechazar != null) {
 
-            pedidoService.agregarProducto(1002, arepaQueso, 1);
-            pedidoService.agregarProducto(1002, gaseosa, 2);
+            int idPedidoRechazar = pedidoRechazar.getId();
 
-            if (pedidoService.confirmarPedido(1002)) {
-                pagoService.registrarPago(1002, MetodoPago.EFECTIVO);
+            pedidoService.agregarProducto(
+                    idPedidoRechazar, arepaQueso, 1
+            );
+
+            pedidoService.agregarProducto(
+                    idPedidoRechazar, gaseosa, 2
+            );
+
+            if (pedidoService.confirmarPedido(idPedidoRechazar)) {
+                pagoService.registrarPago(
+                        idPedidoRechazar, MetodoPago.EFECTIVO
+                );
             }
         }
 
+        //NOTIFICACIONES TEMPORALES
+        System.out.println("\n=== PRUEBA DE NOTIFICACIONES ===");
+
+        System.out.println("Notificaciones comercio: "
+                + notificacionService.listarNotificaciones().size());
+
+        System.out.println("Notificaciones clientes: "
+                + notificacionService.listarNotificacionesCliente().size());
 
 
         // Servicio encargado de generar y consultar facturas.
@@ -191,18 +252,17 @@ public class Application {
         );
 
         // Vista encargada de mostrar el historial.
-        HistorialView historialView = new  HistorialView(
+        HistorialView historialView = new HistorialView(
                 facturaService,
                 pedidoRepository
         );
 
         AdministradorRestauranteView administradorView =
-                new  AdministradorRestauranteView(
+                new AdministradorRestauranteView(
                         administradorDemo,
                         pedidoService,
                         pagoService
                 );
-
 
 
         // Módulo de Clientes.
@@ -210,7 +270,8 @@ public class Application {
         ClienteView clienteView = new ClienteView(
                 clienteService,
                 restauranteView,
-                historialView
+                historialView,
+                pedidoService
         );
 
         // Scanner para controlar las opciones del menú principal

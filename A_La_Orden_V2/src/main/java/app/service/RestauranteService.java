@@ -1,60 +1,80 @@
 package app.service;
 
-
 import app.domain.Restaurante;
 import app.repository.RestauranteRepository;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class RestauranteService {
 
-    //Dependencia del repository, lo necesitamos para los datos crudos
-    private RestauranteRepository restauranteRepository;
+    private final RestauranteRepository restauranteRepository;
 
-    //Inyectamos constructor de repositorio
+    // Recibimos el repositorio mediante inyección de dependencias.
     public RestauranteService(RestauranteRepository restauranteRepository) {
+
+        if (restauranteRepository == null) {
+            throw new IllegalArgumentException(
+                    "El repositorio de restaurantes es obligatorio."
+            );
+        }
+
         this.restauranteRepository = restauranteRepository;
     }
 
-    //Criterio US-03 Mostrar restaurantes ordenados por cercania
-
+    // US-03: Obtener restaurantes ordenados por cercanía.
     public List<Restaurante> obtenerRestaurantesCercanos() {
 
-        //1. Lista original del repo
-        List<Restaurante> ListaOriginal = restauranteRepository.obtenerTodos();
+        List<Restaurante> listaOriginal =
+                restauranteRepository.obtenerTodos();
 
-        //2. Usamos stream para obtener de menor a mayor por propiedad
-        return ListaOriginal.stream()
-                .sorted(Comparator.comparingDouble(Restaurante::getDistanciaKm))
+        if (listaOriginal == null || listaOriginal.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return listaOriginal.stream()
+                .filter(restaurante -> restaurante != null)
+                .sorted(Comparator.comparing(
+                        Restaurante::getDistanciaKm,
+                        Comparator.nullsLast(Double::compareTo)
+                ))
                 .collect(Collectors.toList());
     }
 
-    //Criterio US-03 Filtrar o Buscar por nombre o categoria
+    // US-03: Buscar restaurantes por nombre o categoría.
+    public List<Restaurante> buscarRestaurantes(String filtro) {
 
-    public List<Restaurante> buscarRestaurantes(String filtro){
-        //Si no ingresa texto devuelve la lista completa por cercania
-
-        if (filtro == null || filtro.trim().isEmpty()){
+        if (filtro == null || filtro.trim().isEmpty()) {
             return obtenerRestaurantesCercanos();
         }
 
-    // Pasamos el texto a minúsculas para ignorar mayúsculas/minúsculas en la búsqueda
-    String filtroMiniscula = filtro.toLowerCase().trim();
+        String filtroMinuscula = filtro.trim().toLowerCase();
 
-
-    // Partimos de la lista QUE YA ESTÁ ORDENADA por cercanía
         return obtenerRestaurantesCercanos().stream()
-                .filter(r -> r.getNombre().toLowerCase().contains(filtroMiniscula) ||
-                        r.getCategoria().toLowerCase().contains(filtroMiniscula))
-                           .collect(Collectors.toList());
+                .filter(restaurante ->
+                        (restaurante.getNombre() != null
+                                && restaurante.getNombre()
+                                .toLowerCase()
+                                .contains(filtroMinuscula))
+                                ||
+                                (restaurante.getCategoria() != null
+                                        && restaurante.getCategoria()
+                                        .toLowerCase()
+                                        .contains(filtroMinuscula))
+                )
+                .collect(Collectors.toList());
     }
 
+    // Buscar un restaurante por su identificador.
     public Optional<Restaurante> obtenerRestaurantePorId(int id) {
+
+        if (id <= 0) {
+            return Optional.empty();
+        }
+
         return restauranteRepository.buscarPorId(id);
     }
-
-
 }
