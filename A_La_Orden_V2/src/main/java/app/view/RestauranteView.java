@@ -7,6 +7,7 @@ import app.domain.Pedido;
 import app.service.PagoService;
 import app.service.PedidoService;
 import app.service.RestauranteService;
+import app.service.FacturaService;
 
 import java.util.Map;
 import java.util.List;
@@ -21,12 +22,19 @@ public class RestauranteView {
     private RestauranteService restauranteService;
     private PedidoService pedidoService;
     private PagoService pagoService;
+    private FacturaService facturaService;
 
-    public RestauranteView(RestauranteService restauranteService, PedidoService pedidoService, PagoService pagoService) {
+    public RestauranteView(
+            RestauranteService restauranteService,
+            PedidoService pedidoService,
+            PagoService pagoService,
+            FacturaService facturaService) {
+
         this.scanner = new Scanner(System.in);
         this.restauranteService = restauranteService;
         this.pedidoService = pedidoService;
         this.pagoService = pagoService;
+        this.facturaService = facturaService;
     }
 
     //Menú principal de la funcionalidad US-03 y US-04
@@ -153,6 +161,7 @@ public class RestauranteView {
                 PedidoView pedidoView = new PedidoView(
                         pedidoService,
                         pagoService,
+                        facturaService,
                         productos
                 );
 
