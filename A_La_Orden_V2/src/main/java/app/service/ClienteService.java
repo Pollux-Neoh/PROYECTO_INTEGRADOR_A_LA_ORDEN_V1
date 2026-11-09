@@ -3,15 +3,45 @@ package app.service;
 import app.domain.Cliente;
 import app.repository.ClienteRepository;
 import app.validators.ClienteValidator;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class ClienteService {
 
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
 
     public ClienteService(ClienteRepository clienteRepository) {
+
+        if (clienteRepository == null) {
+            throw new IllegalArgumentException(
+                    "El repositorio de clientes no puede ser nulo."
+            );
+        }
+
         this.clienteRepository = clienteRepository;
     }
 
+    // Registro sin ID: el repositorio se encarga de generarlo.
+    public Cliente registrarCliente(
+            String nombre,
+            String correo,
+            String contrasenia,
+            String telefono,
+            boolean estado,
+            String direccion
+    ) {
+
+        return registrarCliente(
+                0,
+                nombre,
+                correo,
+                contrasenia,
+                telefono,
+                estado,
+                direccion
+        );
+    }
+
+    // Registro conservando compatibilidad con llamadas que envían un ID.
     public Cliente registrarCliente(
             int id,
             String nombre,
@@ -22,88 +52,118 @@ public class ClienteService {
             String direccion
     ) {
 
-        // Validamos el formato del correo
+        // Validamos el formato del correo.
         if (!ClienteValidator.validarCorreo(correo)) {
-            System.out.println("El formato del correo no es válido");
+            System.out.println("El formato del correo no es válido.");
             return null;
         }
 
-        // Validamos la seguridad básica de la contraseña
+        // Validamos la seguridad básica de la contraseña.
         if (!ClienteValidator.validarContrasenia(contrasenia)) {
-            System.out.println("La contraseña debe tener mínimo 8 caracteres.");
+            System.out.println(
+                    "La contraseña debe tener mínimo 8 caracteres."
+            );
             return null;
         }
 
-        // Verificamos si el correo ya está registrado
-        Cliente clienteExistente = clienteRepository.buscarPorCorreo(correo);
+        // Verificamos si el correo ya está registrado.
+        Cliente clienteExistente =
+                clienteRepository.buscarPorCorreo(correo);
 
         if (clienteExistente != null) {
-            System.out.println("El correo ya está registrado");
+            System.out.println("El correo ya está registrado.");
             return null;
         }
 
-        // Crear el cliente
+        // Generamos un hash seguro de la contraseña.
+        String contraseniaHash = BCrypt.hashpw(
+                contrasenia,
+                BCrypt.gensalt(12)
+        );
+
+        // Creamos el cliente.
+        // Si el ID es 0, el repositorio generará uno automáticamente.
         Cliente cliente = new Cliente(
                 id,
                 nombre,
                 correo,
-                contrasenia,
+                contraseniaHash,
                 telefono,
                 estado,
                 direccion
         );
 
-        // Guardar el cliente
-        clienteRepository.guardar(cliente);
-
-        return cliente;
-
+        // Guardamos y devolvemos el cliente registrado.
+        return clienteRepository.guardar(cliente);
     }
 
-    public Cliente iniciarSesion(String correo, String contrasenia) {
+    public Cliente iniciarSesion(
+            String correo,
+            String contrasenia
+    ) {
 
-        // Buscamos el cliente por su correo
+        // Buscamos el cliente por su correo.
         Cliente cliente = clienteRepository.buscarPorCorreo(correo);
 
-        // Si no existe un cliente con ese correo
         if (cliente == null) {
-            System.out.println("El correo o la contraseña son incorrectos.");
+            System.out.println(
+                    "El correo o la contraseña son incorrectos."
+            );
             return null;
         }
 
-        // Comparamos la contraseña ingresada con la contraseña registrada
-        if (!cliente.getContrasenia().equals(contrasenia)) {
-            System.out.println("El correo o la contraseña son incorrectos.");
+        // Comparamos la contraseña ingresada con el hash almacenado.
+        if (contrasenia == null
+                || !BCrypt.checkpw(
+                contrasenia,
+                cliente.getContrasenia()
+        )) {
+
+            System.out.println(
+                    "El correo o la contraseña son incorrectos."
+            );
             return null;
         }
 
-        // Si las credenciales coinciden, devolvemos el cliente
         return cliente;
     }
 
-    public boolean recuperarContrasenia(String correo, String nuevaContrasenia) {
+    public boolean recuperarContrasenia(
+            String correo,
+            String nuevaContrasenia
+    ) {
 
-        // Buscamos el cliente utilizando el correo ingresado
+        // Buscamos el cliente utilizando el correo.
         Cliente cliente = clienteRepository.buscarPorCorreo(correo);
 
-        // Si no existe un cliente con ese correo, no podemos actualizar la contraseña.
         if (cliente == null) {
-            System.out.println("No existe una cuenta registrada con ese correo.");
+            System.out.println(
+                    "No existe una cuenta registrada con ese correo."
+            );
             return false;
         }
 
-        // Validamos que la nueva contraseña cumpla con la regla establecida
+        // Validamos la nueva contraseña.
         if (!ClienteValidator.validarContrasenia(nuevaContrasenia)) {
-            System.out.println("La contraseña debe tener mínimo 8 caracteres.");
-
+            System.out.println(
+                    "La contraseña debe tener mínimo 8 caracteres."
+            );
             return false;
         }
-        // Sitodo está correcto, enviamos el cliente y la nueva contraseña al Repository.
+
+        // Generamos un hash seguro para la nueva contraseña.
+        String nuevaContraseniaHash = BCrypt.hashpw(
+                nuevaContrasenia,
+                BCrypt.gensalt(12)
+        );
+
+        // Actualizamos la contraseña utilizando el hash.
         clienteRepository.actualizarContraseina(
                 cliente,
-                nuevaContrasenia
+                nuevaContraseniaHash
         );
-        System.out.println("Contraseña actualizada correctamente");
+
+        System.out.println("Contraseña actualizada correctamente.");
 
         return true;
     }

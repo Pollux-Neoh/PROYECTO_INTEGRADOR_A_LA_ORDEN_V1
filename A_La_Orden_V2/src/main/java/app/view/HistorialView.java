@@ -4,7 +4,7 @@ import app.domain.Cliente;
 import app.domain.DetalleFactura;
 import app.domain.Factura;
 import app.domain.Pedido;
-import app.repository.PedidoRepository;
+import app.service.OutputPort.PedidoOutport;
 import app.service.FacturaService;
 
 import java.math.BigDecimal;
@@ -16,9 +16,11 @@ import java.util.List;
 public class HistorialView {
 
     private final FacturaService facturaService;
-    private final PedidoRepository pedidoRepository;
+    private final PedidoOutport pedidoRepository;
 
-    public HistorialView(FacturaService facturaService, PedidoRepository pedidoRepository) {
+    public HistorialView(
+            FacturaService facturaService,
+            PedidoOutport pedidoRepository) {
 
         this.facturaService = facturaService;
         this.pedidoRepository = pedidoRepository;

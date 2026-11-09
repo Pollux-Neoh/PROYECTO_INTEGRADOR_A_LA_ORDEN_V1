@@ -2,39 +2,23 @@ package app.repository;
 
 import app.domain.Cliente;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ClienteRepository {
+// Define las operaciones de almacenamiento de los clientes.
+public interface ClienteRepository {
 
-    private List<Cliente> clientes;
+    // Guarda un cliente y devuelve el objeto guardado.
+    Cliente guardar(Cliente cliente);
 
-    public ClienteRepository() {
+    // Busca un cliente por su identificador.
+    Cliente buscarPorId(int id);
 
-        clientes = new ArrayList<>();
-    }
+    // Busca un cliente por correo.
+    Cliente buscarPorCorreo(String correo);
 
-    public void guardar(Cliente cliente) {
-        clientes.add(cliente);
-    }
+    // Consulta todos los clientes.
+    List<Cliente> listar();
 
-    public Cliente buscarPorCorreo(String correo) {
-
-        for (Cliente cliente : clientes) {
-            if (cliente.getCorreo().equals(correo)) {
-                return cliente;
-            }
-        }
-        return null;
-    }
-
-    public List<Cliente> listar() {
-        return clientes;
-    }
-
-    public void actualizarContraseina(Cliente cliente, String nuevaContrasenia) {
-
-        //Actualizamos la contraseña del cliente recibido
-        cliente.setContrasenia(nuevaContrasenia);
-    }
+    // Actualiza la contraseña de un cliente.
+    void actualizarContraseina(Cliente cliente, String nuevaContrasenia);
 }

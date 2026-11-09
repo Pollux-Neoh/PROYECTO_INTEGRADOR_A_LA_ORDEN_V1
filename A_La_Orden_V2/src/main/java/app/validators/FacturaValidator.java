@@ -11,18 +11,19 @@ import java.math.BigDecimal;
 public class FacturaValidator {
 
     // Comprueba si el pago puede generar una factura.
-    public static boolean validarPagoParaFacturar(Pago pago){
+    public static boolean validarPagoParaFacturar(Pago pago) {
 
         return pago != null
                 && pago.getEstado() == EstadoPago.CONFIRMADO
-                && pago.getPedido() != null;
+                && validarPedidoParaFacturar(pago.getPedido());
     }
 
     // Comprueba si el pedido puede generar una factura.
-    public static boolean validarPedidoParaFacturar(Pedido pedido){
+    public static boolean validarPedidoParaFacturar(Pedido pedido) {
 
         return pedido != null
                 && pedido.getEstado() == EstadoPedido.CONFIRMADO
+                && pedido.getDetalles() != null
                 && !pedido.getDetalles().isEmpty();
     }
 
@@ -33,7 +34,8 @@ public class FacturaValidator {
 
         return montoPago != null
                 && totalFactura != null
-                && montoPago.compareTo(totalFactura) == 0
-                && totalFactura.compareTo(BigDecimal.ZERO) > 0;
+                && montoPago.compareTo(BigDecimal.ZERO) > 0
+                && totalFactura.compareTo(BigDecimal.ZERO) > 0
+                && montoPago.compareTo(totalFactura) == 0;
     }
 }

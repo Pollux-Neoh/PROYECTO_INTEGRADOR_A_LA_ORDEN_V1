@@ -14,6 +14,8 @@ import app.repository.FacturaRepositoryMemoria;
 import app.repository.PagoRepository;
 import app.repository.PagoRepositoryMemoria;
 import app.repository.PedidoRepository;
+import app.repository.NotificacionComercioRepositoryMemoria;
+import app.repository.NotificacionClienteRepositoryMemoria;
 
 import app.service.FacturaService;
 import app.service.PagoService;
@@ -52,9 +54,10 @@ public class PruebaFactura {
           "Comida rápida"
         );
 
-        // 3. Creamos los productos.
+// 3. Creamos los productos.
         Producto hamburguesa = new Producto(
                 1,
+                restaurante.getId(),
                 "Hamburguesa",
                 "Hamburguesa especial",
                 new BigDecimal("35000"),
@@ -63,12 +66,13 @@ public class PruebaFactura {
         );
 
         Producto gaseosa = new Producto(
-              2,
-              "Gaseosa",
-              "Gaseosa personal",
-              new BigDecimal("5000"),
-              true,
-              "Bebidas"
+                2,
+                restaurante.getId(),
+                "Gaseosa",
+                "Gaseosa personal",
+                new BigDecimal("5000"),
+                true,
+                "Bebidas"
         );
 
         // 4. Creamos los repositorios.
@@ -80,7 +84,11 @@ public class PruebaFactura {
                 new FacturaRepositoryMemoria();
 
         // 5. Creamos los servicios.
-        NotificacionService notificacionService = new NotificacionService();
+
+        NotificacionService notificacionService = new NotificacionService(
+                new NotificacionComercioRepositoryMemoria(),
+                new NotificacionClienteRepositoryMemoria()
+        );
 
         PedidoService pedidoService =
                 new PedidoService(pedidoRepository, notificacionService);

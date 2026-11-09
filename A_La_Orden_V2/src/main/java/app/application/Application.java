@@ -1,209 +1,212 @@
+
 package app.application;
 
 import app.domain.*;
-import app.repository.ClienteRepository;
-import app.repository.RestauranteRepository;
-import app.repository.RestauranteRepositoryImpl;
-import app.service.ClienteService;
-import app.service.RestauranteService;
-import app.view.ClienteView;
-import app.view.RestauranteView;
 import app.domain.enums.MetodoPago;
 
-import java.util.Scanner;
-
-import app.repository.PedidoRepository;
+import app.repository.ClienteRepository;
+import app.repository.ClienteRepositoryMySQL;
+import app.repository.ProductoRepository;
+import app.repository.ProductoRepositoryMySQL;
+import app.repository.RestauranteRepository;
+import app.repository.RestauranteRepositoryMySQL;
 import app.repository.PagoRepository;
-import app.repository.PagoRepositoryMemoria;
+import app.repository.PagoRepositoryMySQL;
 import app.repository.FacturaRepository;
-import app.repository.FacturaRepositoryMemoria;
-import app.service.FacturaService;
-import app.view.HistorialView;
+import app.repository.FacturaRepositoryMySQL;
+import app.repository.NotificacionClienteRepository;
+import app.repository.NotificacionClienteRepositoryMySQL;
+import app.repository.NotificacionComercioRepository;
+import app.repository.NotificacionComercioRepositoryMySQL;
+import app.repository.PedidoRepositoryMySQL;
+
+import app.service.OutputPort.PedidoOutport;
+import app.service.ClienteService;
+import app.service.ProductoService;
+import app.service.RestauranteService;
 import app.service.PedidoService;
 import app.service.PagoService;
+import app.service.FacturaService;
 import app.service.NotificacionService;
+
+import app.view.ClienteView;
+import app.view.RestauranteView;
+import app.view.HistorialView;
 import app.view.AdministradorRestauranteView;
 
-import java.math.BigDecimal;
+import org.mindrot.jbcrypt.BCrypt;
+
+import java.util.Scanner;
 
 public class Application {
 
     public static void main(String[] args) {
 
-        // ==============================
-        // CREACIÓN DE LOS COMPONENTES DE LA APP
-        // ==============================
+        // ==========================================
+        // REPOSITORIOS MYSQL
+        // ==========================================
 
-        // Módulo de Restaurantes (US-03 / US-04)
-        RestauranteRepository restauranteRepository = new RestauranteRepositoryImpl();
+        RestauranteRepository restauranteRepository =
+                new RestauranteRepositoryMySQL();
+
+        ProductoRepository productoRepository =
+                new ProductoRepositoryMySQL();
+
+        ClienteRepository clienteRepository =
+                new ClienteRepositoryMySQL();
+
+        PedidoOutport pedidoRepository =
+                new PedidoRepositoryMySQL();
+
+        PagoRepository pagoRepository =
+                new PagoRepositoryMySQL(pedidoRepository);
+
+        FacturaRepository facturaRepository =
+                new FacturaRepositoryMySQL();
+
+        NotificacionComercioRepository comercioNotificacionRepository =
+                new NotificacionComercioRepositoryMySQL();
+
+        NotificacionClienteRepository clienteNotificacionRepository =
+                new NotificacionClienteRepositoryMySQL();
+
+
+        // ==========================================
+        // SERVICIOS
+        // ==========================================
+
         RestauranteService restauranteService =
                 new RestauranteService(restauranteRepository);
 
-        // =======================
-        // ADMINISTRADOR DE PRUEBA - US-19
-        // =======================
+        ProductoService productoService =
+                new ProductoService(
+                        productoRepository,
+                        restauranteRepository
+                );
 
-        //Buscamos el restaurante que administrará el usuario.
+        ClienteService clienteService =
+                new ClienteService(clienteRepository);
+
+
+        // ==========================================
+        // ADMINISTRADOR DE PRUEBA - US-19
+        // ==========================================
+
+        // Buscamos el restaurante que administrará el usuario.
         Restaurante restauranteDemo = restauranteRepository
-                .buscarPorId(2)
+                .buscarPorId(1)
                 .orElseThrow(() -> new IllegalStateException(
                         "No se encontró el restaurante de prueba."
                 ));
 
-        // Cargamos productos de prueva para El Sazón Paisa.
-        Producto bandejaPaisa = new Producto(
-                101,"Bandeja Paisa", "Plato típico Colombiano",
-                new BigDecimal("25000"), true, "Platos principales"
+        // Generamos el hash de la contraseña del administrador.
+        String contraseniaAdminHash = BCrypt.hashpw(
+                "Admin12345",
+                BCrypt.gensalt(12)
         );
 
-        Producto arepaQueso = new Producto(
-                102, "Arepa paisa", "Plato típico Colombiano",
-                new BigDecimal("8000"), true, "Acompañamientos"
-        );
-
-        Producto gaseosa = new Producto(
-                103,"Gaseosa", "Bedida personal",
-                new BigDecimal("5000"), true, "Bedidas"
-        );
-
-
-        restauranteDemo.agregarProducto(bandejaPaisa);
-        restauranteDemo.agregarProducto(arepaQueso);
-        restauranteDemo.agregarProducto(gaseosa);
-
-        // Creamos el administrador asociado al restaurante.
+        // Creamos el administrador de prueba.
         AdministradorRestaurante administradorDemo =
                 new AdministradorRestaurante(
                         10,
-                        "Administrador El Sazón",
-                        "admins@sazon.com",
-                        "admin12345",
+                        "Administrador Donde Lola",
+                        "admins@lola.com",
+                        contraseniaAdminHash,
                         "3001234567",
                         true,
                         restauranteDemo
                 );
 
 
-        // ==============================
-        // MÓDULO DE PEDIDOS, PAGOS Y FACTURACIÓN
-        // ==============================
+        // ==========================================
+        // MÓDULO DE NOTIFICACIONES
+        // ==========================================
 
-        // Repositorio de pedidos.
-        PedidoRepository pedidoRepository = new PedidoRepository();
+        NotificacionService notificacionService =
+                new NotificacionService(
+                        comercioNotificacionRepository,
+                        clienteNotificacionRepository
+                );
 
-        // Repositorio de pagos.
-        PagoRepository pagoRepository = new PagoRepositoryMemoria();
 
-        // Repositorio de facturas.
-        FacturaRepository facturaRepository = new FacturaRepositoryMemoria();
+        // ==========================================
+        // MÓDULO DE PEDIDOS
+        // ==========================================
 
-        // Servicios encargados de pedidos y pagos.
-        NotificacionService notificacionService = new NotificacionService();
-        PedidoService pedidoService = new PedidoService(
-                pedidoRepository,
-                notificacionService
-        );
+        PedidoService pedidoService =
+                new PedidoService(
+                        pedidoRepository,
+                        notificacionService
+                );
 
-        // Servicio encargado de gestionar los pagos.
-        PagoService pagoService = new PagoService(
-                pagoRepository,
-                pedidoRepository
-        );
+
+        // ==========================================
+        // MÓDULO DE PAGOS
+        // ==========================================
+
+        PagoService pagoService =
+                new PagoService(
+                        pagoRepository,
+                        pedidoRepository
+                );
+
+
+        // ==========================================
+        // MÓDULO DE FACTURACIÓN
+        // ==========================================
+
+        FacturaService facturaService =
+                new FacturaService(
+                        facturaRepository,
+                        pagoRepository
+                );
+
+
+        // ==========================================
+        // VISTAS
+        // ==========================================
 
         // Vista de restaurantes conectada con pedidos y pagos.
-        RestauranteView restauranteView = new RestauranteView(
-                restauranteService,
-                pedidoService,
-                pagoService
-        );
-
-
-        // ==============================
-        // PEDIDOS DE PRUEBA - US-19
-        // ==============================
-
-        // Cliente utilizado para las pruebas.
-        Cliente clienteDemo = new Cliente(
-                100,
-                "Camilo Cliente",
-                "cliente@prueba.com",
-                "123456",
-                "3001112233",
-                true,
-                "Medellín"
-        );
-
-        // Pedido 1001: se utilizará para probar la aceptación.
-        Pedido pedidoAceptar = pedidoService.crearPedido(
-                1001, clienteDemo, restauranteDemo
-        );
-
-        if (pedidoAceptar != null) {
-
-            pedidoService.agregarProducto(1001, bandejaPaisa, 2);
-            pedidoService.agregarProducto(1001, gaseosa, 1);
-
-            if (pedidoService.confirmarPedido(1001)) {
-                pagoService.registrarPago(1001, MetodoPago.EFECTIVO);
-            }
-        }
-
-        // Pedido 1002: se utilizará para probar el rechazo.
-        Pedido pedidoRechazar = pedidoService.crearPedido(
-                1002, clienteDemo, restauranteDemo
-        );
-
-        if (pedidoRechazar != null) {
-
-            pedidoService.agregarProducto(1002, arepaQueso, 1);
-            pedidoService.agregarProducto(1002, gaseosa, 2);
-
-            if (pedidoService.confirmarPedido(1002)) {
-                pagoService.registrarPago(1002, MetodoPago.EFECTIVO);
-            }
-        }
-
-
-
-        // Servicio encargado de generar y consultar facturas.
-        FacturaService facturaService = new FacturaService(
-                facturaRepository,
-                pagoRepository
-        );
+        RestauranteView restauranteView =
+                new RestauranteView(
+                        restauranteService,
+                        pedidoService,
+                        pagoService,
+                        facturaService
+                );
 
         // Vista encargada de mostrar el historial.
-        HistorialView historialView = new  HistorialView(
-                facturaService,
-                pedidoRepository
-        );
+        HistorialView historialView =
+                new HistorialView(
+                        facturaService,
+                        pedidoRepository
+                );
 
+        // Vista del administrador del restaurante.
         AdministradorRestauranteView administradorView =
-                new  AdministradorRestauranteView(
+                new AdministradorRestauranteView(
                         administradorDemo,
                         pedidoService,
                         pagoService
                 );
 
+        // Vista de clientes.
+        ClienteView clienteView =
+                new ClienteView(
+                        clienteService,
+                        restauranteView,
+                        historialView,
+                        pedidoService
+                );
 
 
-        // Módulo de Clientes (Le inyectamos restauranteView para navegar desde la pantalla principal)
-        ClienteRepository clienteRepository = new ClienteRepository();
-        ClienteService clienteService = new ClienteService(clienteRepository);
-        ClienteView clienteView = new ClienteView(
-                clienteService,
-                restauranteView,
-                historialView
-        );
+        // ==========================================
+        // MENÚ PRINCIPAL
+        // ==========================================
 
-        // Scanner para controlar las opciones del menú principal
         Scanner scanner = new Scanner(System.in);
 
-        // Variable que controla si la aplicación continúa ejecutándose
         boolean continuar = true;
-
-        // ==============================
-        // MENÚ PRINCIPAL
-        // ==============================
 
         while (continuar) {
 
@@ -223,15 +226,15 @@ public class Application {
             switch (opcion) {
 
                 case "1":
-                    // Ejecutamos el proceso de creación de cuenta
+                    // Ejecutamos el proceso de creación de cuenta.
                     clienteView.mostrarRegistro();
                     break;
 
                 case "2":
-                    // Ejecutamos el proceso de inicio de sesión y guardamos el cliente devuelto.
+                    // Ejecutamos el proceso de inicio de sesión.
                     Cliente cliente = clienteView.mostrarLogin();
 
-                    // Verificamos si el inicio de sesión fue exitoso
+                    // Verificamos si el inicio de sesión fue exitoso.
                     if (cliente != null) {
                         clienteView.mostrarPantallaPrincipal(cliente);
                     }
@@ -242,7 +245,7 @@ public class Application {
                     break;
 
                 case "4":
-                    // Cambiamos la variable para terminar el ciclo
+                    // Finalizamos el ciclo del menú principal.
                     continuar = false;
 
                     System.out.println("\nGracias por usar A LA ORDEN.");
@@ -250,13 +253,12 @@ public class Application {
                     break;
 
                 default:
-                    // Si el usuario escribe una opción que no existe
                     System.out.println("\nOpción no válida.");
-                    System.out.println("Por favor, seleccione 1, 2 o 3.");
+                    System.out.println("Por favor, seleccione 1, 2, 3 o 4.");
             }
         }
 
-        // Cerramos el Scanner al terminar la aplicación
+        // Cerramos el Scanner al terminar la aplicación.
         scanner.close();
     }
 }

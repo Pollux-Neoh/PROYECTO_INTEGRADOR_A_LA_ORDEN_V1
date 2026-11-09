@@ -5,89 +5,78 @@ import app.domain.Pedido;
 import app.domain.enums.EstadoPago;
 import app.domain.enums.MetodoPago;
 import app.repository.PagoRepository;
-import app.repository.PedidoRepository;
+import app.service.OutputPort.PedidoOutport;
 import app.validators.PagoValidator;
 
 import java.util.List;
 
-
-
-// Coordina las operaciones relacionadas con los pagos.
 public class PagoService {
 
     private final PagoRepository pagoRepository;
-    private final PedidoRepository pedidoRepository;
+    private final PedidoOutport pedidoRepository;
 
-    // Controla la generación de identificadores de pago.
-    private int siguienteId;
-
-    public PagoService(PagoRepository pagoRepository,
-                       PedidoRepository pedidoRepository) {
+    public PagoService(PagoRepository pagoRepository, PedidoOutport pedidoRepository) {
 
         if (pagoRepository == null || pedidoRepository == null) {
-            throw new IllegalArgumentException(
-                    "Los repositorios son obligatorios."
-            );
+            throw new IllegalArgumentException("Los repositorios son obligatorios.");
         }
 
         this.pagoRepository = pagoRepository;
         this.pedidoRepository = pedidoRepository;
-        this.siguienteId = 1;
     }
 
-    // Registra la selección del método de pago.
+    // Confirma un pago y persiste el cambio en MySQL.
+    public boolean confirmarPago(Pago pago) {
+
+        if (pago == null || !pago.confirmar()) {
+            return false;
+        }
+
+        pagoRepository.actualizar(pago);
+
+        return true;
+    }
+
+    // Registra un pago para un pedido.
     public Pago registrarPago(int pedidoId, MetodoPago metodoPago) {
 
-        // Verifica que se haya seleccionado un método.
         if (metodoPago == null) {
             return null;
         }
 
-        // Busca el pedido.
         Pedido pedido = pedidoRepository.buscarPorId(pedidoId);
 
-        // Comprueba que el pedido pueda recibir un pago.
         if (!PagoValidator.validarPedidoParaPago(pedido)) {
             return null;
         }
 
-        // Consultamos los pagos anteriores.
-        List<Pago> pagosAnteriores =
-                pagoRepository.listarPorPedido(pedidoId);
+        List<Pago> pagosAnteriores = pagoRepository.listarPorPedido(pedidoId);
 
-        // Evitamos registrar pagos duplicados.
         for (Pago pagoAnterior : pagosAnteriores) {
             if (pagoAnterior.getEstado() != EstadoPago.CANCELADO) {
                 return null;
             }
         }
 
-        // Validamos el monto del pedido.
         if (!PagoValidator.validarMonto(pedido, pedido.getSubtotal())) {
             return null;
         }
 
-        // Creamos el nuevo pago.
-        Pago nuevoPago = new Pago(
-                siguienteId,
+        Pago nuevoPago = Pago.crearNuevo(
                 pedido,
                 metodoPago,
                 pedido.getSubtotal()
         );
 
-        // Guardamos el pago.
-        pagoRepository.guardar(nuevoPago);
-        siguienteId++;
-
-        return nuevoPago;
+        return pagoRepository.guardar(nuevoPago);
     }
 
-    // Consulta un pago mediante su identificador.
+    // Busca un pago por su identificador.
     public Pago buscarPorId(int pagoId) {
         return pagoRepository.buscarPorId(pagoId);
     }
 
-    // Cancela un pago pendiente.
+    // Cancela un pago existente.
     public boolean cancelarPago(int pagoId) {
 
         Pago pago = pagoRepository.buscarPorId(pagoId);
@@ -97,7 +86,6 @@ public class PagoService {
         }
 
         pagoRepository.actualizar(pago);
-
         return true;
     }
 
@@ -106,29 +94,30 @@ public class PagoService {
         return pagoRepository.listarPorPedido(pedidoId);
     }
 
-
-    // Registra y confirma un pago simulado con tarjeta.
+    // Registra y confirma un pago realizado con tarjeta.
     public Pago registrarPagoTarjeta(
             int pedidoId,
             String numeroTarjeta,
             String titular,
             String fechaVencimiento,
-            String cvv) {
+            String cvv
+    ) {
 
-        // Validamos los datos de la tarjeta.
         if (!PagoValidator.validarDatosTarjeta(
-                numeroTarjeta, titular, fechaVencimiento, cvv)) {
+                numeroTarjeta,
+                titular,
+                fechaVencimiento,
+                cvv
+        )) {
             return null;
         }
 
-        // Registramos el pago con tarjeta.
         Pago pago = registrarPago(pedidoId, MetodoPago.TARJETA);
 
         if (pago == null) {
             return null;
         }
 
-        // Simulamos la aprobación de la transacción.
         if (!pago.confirmar()) {
             return null;
         }
@@ -137,6 +126,4 @@ public class PagoService {
 
         return pago;
     }
-
-
 }
