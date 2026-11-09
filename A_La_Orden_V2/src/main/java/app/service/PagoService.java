@@ -25,6 +25,18 @@ public class PagoService {
         this.pedidoRepository = pedidoRepository;
     }
 
+    // Confirma un pago y persiste el cambio en MySQL.
+    public boolean confirmarPago(Pago pago) {
+
+        if (pago == null || !pago.confirmar()) {
+            return false;
+        }
+
+        pagoRepository.actualizar(pago);
+
+        return true;
+    }
+
     // Registra un pago para un pedido.
     public Pago registrarPago(int pedidoId, MetodoPago metodoPago) {
 

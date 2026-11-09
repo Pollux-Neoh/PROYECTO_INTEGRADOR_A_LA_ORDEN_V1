@@ -49,14 +49,15 @@ public class ClienteView {
         System.out.println("Contraseña: ");
         String contrasenia = scanner.nextLine();
 
-        // Datos internos que el sistema establece automáticamente
-        int id = 1;
+        // Datos que el usuario proporciona.
+        System.out.println("Dirección: ");
+        String direccion = scanner.nextLine();
+
+        // Datos internos que el sistema establece automáticamente.
         boolean estado = true;
-        String direccion = "";
 
         // Enviamos los datos al service para registar el cliente
         Cliente clienteRegistrado = clienteService.registrarCliente(
-                id,
                 nombre,
                 correo,
                 contrasenia,
